@@ -1,18 +1,17 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net.Sockets;
 using UnityEngine;
-using System.Threading.Tasks;
-
+using System.Text;
+using System.Collections;
+using System.Threading;
 
 namespace Telexistence
 {
     public class FanucHandler : MonoBehaviour
     {
         private TcpClient _client;
-        private StreamReader _reader;
-        private StreamWriter _writer;
+        private NetworkStream _stream;
 
         private string _serverIP = "127.0.0.1";
         private int _port = 5000;
@@ -20,11 +19,55 @@ namespace Telexistence
         public Transform kinect_cursor;
         public Transform worldPosition;
         public List<Transform> robot = new List<Transform>();
+        private Vector3 tempPos = new();
+        private Vector3 tempRot = new();
+        string previousMessage = null;
+        private CancellationTokenSource _cancellationTokenSource;
 
         void Start()
         {
+            _cancellationTokenSource = new CancellationTokenSource();
             ConnectToServer();
-            ReadDataFromServerAsync();
+            ReadDataFromServerAsync(_cancellationTokenSource.Token);
+            StartCoroutine(SendDataCoroutine());
+        }
+
+        IEnumerator SendDataCoroutine()
+        {
+            while (true)
+            {
+                if (kinect_cursor.localPosition != tempPos || kinect_cursor.localEulerAngles != tempRot)
+                {
+                    tempPos = gameObject.transform.localPosition;
+                    tempRot = gameObject.transform.localEulerAngles;
+
+                    var rx = CreateFanucWPRFromQuaternion(kinect_cursor.localRotation).x;
+                    var ry = CreateFanucWPRFromQuaternion(kinect_cursor.localRotation).y;
+                    var rz = CreateFanucWPRFromQuaternion(kinect_cursor.localRotation).z;
+
+                    if (float.IsNaN(rx) == false && float.IsNaN(ry) == false && float.IsNaN(rz) == false)
+                    {
+
+                        string message = $"{-kinect_cursor.localPosition.x * 1000},{kinect_cursor.localPosition.y * 1000},{kinect_cursor.localPosition.z * 1000},{rx},{ry},{rz}";
+                        if (previousMessage == null || previousMessage != message)
+                        {
+                            SendMessageToServer(message);
+                            previousMessage = message;
+                        }
+                    }
+                }
+                yield return new WaitForSeconds(1f / 5f);
+            }
+        }
+
+        private void SendMessageToServer(string message)
+        {
+            if (_client != null && _client.Connected)
+            {
+                byte[] data = Encoding.ASCII.GetBytes(message);
+                _stream.Write(data, 0, data.Length);
+                Debug.Log("Sent message to server: " + message);
+            }
         }
 
         private void ConnectToServer()
@@ -32,8 +75,7 @@ namespace Telexistence
             try
             {
                 _client = new TcpClient(_serverIP, _port);
-                _reader = new StreamReader(_client.GetStream());
-                _writer = new StreamWriter(_client.GetStream());
+                _stream = _client.GetStream();
                 Debug.Log("Connected to server successfully.");
             }
             catch (Exception e)
@@ -42,40 +84,46 @@ namespace Telexistence
             }
         }
 
-        private async void ReadDataFromServerAsync()
+        private async void ReadDataFromServerAsync(CancellationToken cancellationToken)
         {
-            if (_reader == null) return;
+            if (_stream == null) return;
 
-            char[] buffer = new char[1024];
-            while (true)
+            byte[] buffer = new byte[1024];
+            while (!cancellationToken.IsCancellationRequested)
             {
                 if (_client.Connected)
                 {
-                    int bytesRead = await _reader.ReadAsync(buffer, 0, buffer.Length);
-                    string data = new string(buffer, 0, bytesRead);
-                    Debug.Log("Received data: " + data); // Add this line to log the received data
+                    int bytesRead = await _stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
+                    string data = Encoding.ASCII.GetString(buffer, 0, bytesRead);
+                    Debug.Log("Received data: " + data);
 
                     string[] values = data.Split(',');
 
-                    // Parse joint angles and xyzwpr position
-                    float[] jointAngles = new float[6];
-                    for (int i = 0; i < 6; i++)
+                    if (values.Length == 12)
                     {
-                        jointAngles[i] = float.Parse(values[i]);
+                        // Parse joint angles and xyzwpr position
+                        float[] jointAngles = new float[6];
+                        for (int i = 0; i < 6; i++)
+                        {
+                            jointAngles[i] = float.Parse(values[i]);
+                        }
+
+                        float x = float.Parse(values[6]);
+                        float y = float.Parse(values[7]);
+                        float z = float.Parse(values[8]);
+                        float w = float.Parse(values[9]);
+                        float p = float.Parse(values[10]);
+                        float r = float.Parse(values[11]);
+
+                        UpdateRobotTransforms(jointAngles, new Vector3(x, y, z), new Vector3(w, p, r));
                     }
-
-                    float x = float.Parse(values[6]);
-                    float y = float.Parse(values[7]);
-                    float z = float.Parse(values[8]);
-                    float w = float.Parse(values[9]);
-                    float p = float.Parse(values[10]);
-                    float r = float.Parse(values[11]);
-
-                    UpdateRobotTransforms(jointAngles, new Vector3(x, y, z), new Vector3(w, p, r));
+                    else
+                    {
+                        Debug.LogError("Received incorrect number of values: " + values.Length);
+                    }
                 }
             }
         }
-
 
         private void UpdateRobotTransforms(float[] jointAngles, Vector3 position, Vector3 rotation)
         {
@@ -87,10 +135,10 @@ namespace Telexistence
 
             robot[0].localEulerAngles = new Vector3(0, 0, -jointAngles[0]);
             robot[1].localEulerAngles = new Vector3(0, -jointAngles[1], 0);
-            robot[2].localEulerAngles = new Vector3(0, jointAngles[3] + jointAngles[2], 0);
-            robot[3].localEulerAngles = new Vector3(-jointAngles[4], 0, 0);
-            robot[4].localEulerAngles = new Vector3(0, jointAngles[5], 0);
-            robot[5].localEulerAngles = new Vector3(-jointAngles[6], 0, 0);
+            robot[2].localEulerAngles = new Vector3(0, jointAngles[2] + jointAngles[1], 0);
+            robot[3].localEulerAngles = new Vector3(-jointAngles[3], 0, 0);
+            robot[4].localEulerAngles = new Vector3(0, jointAngles[4], 0);
+            robot[5].localEulerAngles = new Vector3(-jointAngles[5], 0, 0);
 
             worldPosition.localPosition = new Vector3(-position.x / 1000, position.y / 1000, position.z / 1000);
             Vector3 eulerAngles = CreateQuaternionFromFanucWPR(rotation.x, rotation.y, rotation.z).eulerAngles;
@@ -101,28 +149,11 @@ namespace Telexistence
         {
             if (_client != null)
             {
-                _reader.Close();
-                _writer.Close();
+                _cancellationTokenSource.Cancel();
+                _stream.Close();
                 _client.Close();
             }
-        }        
-
-        /*
-        void RegisterNewPoseIfChanged()
-        {
-            if (kinect_cursor.localPosition != tempPos || kinect_cursor.localEulerAngles != tempRot)
-            {
-                xyzWpr.X = -kinect_cursor.localPosition.x * 1000;
-                xyzWpr.Y = kinect_cursor.localPosition.y * 1000;
-                xyzWpr.Z = kinect_cursor.localPosition.z * 1000;
-                xyzWpr.W = CreateFanucWPRFromQuaternion(kinect_cursor.localRotation).x;
-                xyzWpr.P = CreateFanucWPRFromQuaternion(kinect_cursor.localRotation).y;
-                xyzWpr.R = CreateFanucWPRFromQuaternion(kinect_cursor.localRotation).z;
-                sysGroupPosition.Update();
-                tempPos = gameObject.transform.localPosition;
-                tempRot = gameObject.transform.localEulerAngles;
-            }
-        }*/
+        }
 
         private Vector3 CreateFanucWPRFromQuaternion(Quaternion q)
         {
