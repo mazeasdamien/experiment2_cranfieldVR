@@ -64,11 +64,19 @@ namespace Telexistence
         {
             if (_client != null && _client.Connected)
             {
-                byte[] data = Encoding.ASCII.GetBytes(message);
-                _stream.Write(data, 0, data.Length);
-                Debug.Log("Sent message to server: " + message);
+                try
+                {
+                    byte[] data = Encoding.ASCII.GetBytes(message);
+                    _stream.Write(data, 0, data.Length);
+                    Debug.Log("Sent message to server: " + message);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError("Failed to send message to server: " + e.Message);
+                }
             }
         }
+
 
         private void ConnectToServer()
         {
@@ -89,37 +97,54 @@ namespace Telexistence
             if (_stream == null) return;
 
             byte[] buffer = new byte[1024];
+            StringBuilder accumulatedData = new StringBuilder();
+
             while (!cancellationToken.IsCancellationRequested)
             {
                 if (_client.Connected)
                 {
-                    int bytesRead = await _stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
-                    string data = Encoding.ASCII.GetString(buffer, 0, bytesRead);
-                    Debug.Log("Received data: " + data);
-
-                    string[] values = data.Split(',');
-
-                    if (values.Length == 12)
+                    try
                     {
-                        // Parse joint angles and xyzwpr position
-                        float[] jointAngles = new float[6];
-                        for (int i = 0; i < 6; i++)
+                        int bytesRead = await _stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
+                        accumulatedData.Append(Encoding.ASCII.GetString(buffer, 0, bytesRead));
+
+                        while (accumulatedData.ToString().Contains("\n"))
                         {
-                            jointAngles[i] = float.Parse(values[i]);
+                            int newlineIndex = accumulatedData.ToString().IndexOf("\n");
+                            string data = accumulatedData.ToString().Substring(0, newlineIndex);
+                            accumulatedData.Remove(0, newlineIndex + 1);
+
+                            Debug.Log("Received data: " + data);
+
+                            string[] values = data.Split(',');
+
+                            if (values.Length == 12)
+                            {
+                                // Parse joint angles and xyzwpr position
+                                float[] jointAngles = new float[6];
+                                for (int i = 0; i < 6; i++)
+                                {
+                                    jointAngles[i] = float.Parse(values[i]);
+                                }
+
+                                float x = float.Parse(values[6]);
+                                float y = float.Parse(values[7]);
+                                float z = float.Parse(values[8]);
+                                float w = float.Parse(values[9]);
+                                float p = float.Parse(values[10]);
+                                float r = float.Parse(values[11]);
+
+                                UpdateRobotTransforms(jointAngles, new Vector3(x, y, z), new Vector3(w, p, r));
+                            }
+                            else
+                            {
+                                Debug.LogError("Received incorrect number of values: " + values.Length);
+                            }
                         }
-
-                        float x = float.Parse(values[6]);
-                        float y = float.Parse(values[7]);
-                        float z = float.Parse(values[8]);
-                        float w = float.Parse(values[9]);
-                        float p = float.Parse(values[10]);
-                        float r = float.Parse(values[11]);
-
-                        UpdateRobotTransforms(jointAngles, new Vector3(x, y, z), new Vector3(w, p, r));
                     }
-                    else
+                    catch (Exception e)
                     {
-                        Debug.LogError("Received incorrect number of values: " + values.Length);
+                        Debug.LogError("Failed to read data from server: " + e.Message);
                     }
                 }
             }
