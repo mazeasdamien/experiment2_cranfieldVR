@@ -150,7 +150,7 @@ namespace Leap.Unity.Examples
                 Vector3 currLocalTip = transform.InverseTransformPoint(currWorldTip);
                 Vector3 prevLocalTip = transform.InverseTransformPoint(prevWorldTip);
 
-                deltaAngleSum += Vector2.SignedAngle(prevLocalTip.xz(), currLocalTip.xz()) * _rotationScale * -1.0f;
+                deltaAngleSum += Vector2.SignedAngle(prevLocalTip.zx(), currLocalTip.zx()) * _rotationScale * -1.0f; // Swap X and Z components
                 deltaAngleWeight += 1.0f;
             }
 
@@ -174,7 +174,7 @@ namespace Leap.Unity.Examples
                 }
 
                 Vector3 localRotation = transform.localEulerAngles;
-                localRotation.y += _rotationalVelocity * Time.deltaTime;
+                localRotation.y += _rotationalVelocity * Time.deltaTime; // Keep this as Y-axis rotation
                 transform.localEulerAngles = localRotation;
             }
         }
@@ -189,7 +189,7 @@ namespace Leap.Unity.Examples
             float heightFactor = Mathf.Clamp01(Mathf.InverseLerp(_tableHeight, LowerLevelHeight, localPoint.y));
             float effectiveRadius = Mathf.Lerp(_tableRadius, LowerLevelRadius, heightFactor);
 
-            float pointRadius = new Vector2(localPoint.x, localPoint.z).magnitude;
+            float pointRadius = new Vector2(localPoint.z, localPoint.x).magnitude; // Swap X and Z components
             if (pointRadius > effectiveRadius || pointRadius < effectiveRadius - 0.05f)
             {
                 return false;
