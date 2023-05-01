@@ -170,16 +170,6 @@ namespace Telexistence
             worldPosition.localEulerAngles = new Vector3(eulerAngles.x, -eulerAngles.y, -eulerAngles.z);
         }
 
-        void OnApplicationQuit()
-        {
-            if (_client != null)
-            {
-                _cancellationTokenSource.Cancel();
-                _stream.Close();
-                _client.Close();
-            }
-        }
-
         private Vector3 CreateFanucWPRFromQuaternion(Quaternion q)
         {
             float W = Mathf.Atan2(2 * ((q.w * q.x) + (q.y * q.z)), 1 - 2 * (Mathf.Pow(q.x, 2) + Mathf.Pow(q.y, 2))) * (180 / Mathf.PI);
@@ -200,6 +190,34 @@ namespace Telexistence
             float qw = (Mathf.Cos(Rrad / 2) * Mathf.Cos(Prad / 2) * Mathf.Cos(Wrad / 2)) + (Mathf.Sin(Rrad / 2) * Mathf.Sin(Prad / 2) * Mathf.Sin(Wrad / 2));
 
             return new Quaternion(qx, qy, qz, qw);
-        } 
+        }
+
+        void OnDisable()
+        {
+            Dispose();
+        }
+
+        private void Dispose()
+        {
+            if (_cancellationTokenSource != null)
+            {
+                _cancellationTokenSource.Cancel();
+                _cancellationTokenSource.Dispose();
+                _cancellationTokenSource = null;
+            }
+
+            if (_stream != null)
+            {
+                _stream.Close();
+                _stream = null;
+            }
+
+            if (_client != null)
+            {
+                _client.Close();
+                _client = null;
+            }
+        }
+
     }
 }
