@@ -5,51 +5,73 @@ using UnityEngine;
 using System.Text;
 using System.Collections;
 using System.Threading;
+using System.IO;
 
 namespace Telexistence
 {
     public class FanucHandler : MonoBehaviour
     {
+        // Network and stream variables
         private TcpClient _client;
         private NetworkStream _stream;
 
+        // Server connection settings
         private string _serverIP = "127.0.0.1";
         private int _port = 5000;
 
+        // Transform objects for cursor and robot
         public Transform kinect_cursor;
         public Transform worldPosition;
         public List<Transform> robot = new List<Transform>();
+
+        // Temporary variables for position and rotation
         private Vector3 tempPos = new();
         private Vector3 tempRot = new();
+
+        // Variable for previous message sent
         string previousMessage = null;
+
+        // CancellationTokenSource for async operations
         private CancellationTokenSource _cancellationTokenSource;
+
+        // Message reachability flag
         public bool messageReachability;
 
         void Start()
         {
+            // Initialize CancellationTokenSource
             _cancellationTokenSource = new CancellationTokenSource();
+
+            // Connect to the server and start reading data
             ConnectToServer();
             ReadDataFromServerAsync(_cancellationTokenSource.Token);
+
+            // Start coroutine for sending data
             StartCoroutine(SendDataCoroutine());
         }
 
+        // Coroutine to send data to the server
         IEnumerator SendDataCoroutine()
         {
             while (true)
             {
+                // Check if the local position or rotation of the cursor has changed
                 if (kinect_cursor.localPosition != tempPos || kinect_cursor.localEulerAngles != tempRot)
                 {
-                    tempPos = gameObject.transform.localPosition;
-                    tempRot = gameObject.transform.localEulerAngles;
+                    // Update temporary position and rotation
+                    tempPos = kinect_cursor.localPosition;
+                    tempRot = kinect_cursor.localEulerAngles;
 
-                    var rx = CreateFanucWPRFromQuaternion(kinect_cursor.localRotation).x;
-                    var ry = CreateFanucWPRFromQuaternion(kinect_cursor.localRotation).y;
-                    var rz = CreateFanucWPRFromQuaternion(kinect_cursor.localRotation).z;
+                    // Convert rotation to Fanuc WPR representation
+                    Vector3 wpr = CreateFanucWPRFromQuaternion(kinect_cursor.localRotation);
 
-                    if (float.IsNaN(rx) == false && float.IsNaN(ry) == false && float.IsNaN(rz) == false)
+                    // Check if none of the WPR components are NaN
+                    if (!float.IsNaN(wpr.x) && !float.IsNaN(wpr.y) && !float.IsNaN(wpr.z))
                     {
+                        // Create the message to send
+                        string message = $"{-tempPos.x * 1000},{tempPos.y * 1000},{tempPos.z * 1000},{wpr.x},{wpr.y},{wpr.z}";
 
-                        string message = $"{-kinect_cursor.localPosition.x * 1000},{kinect_cursor.localPosition.y * 1000},{kinect_cursor.localPosition.z * 1000},{rx},{ry},{rz}";
+                        // Send the message if it's different from the previous one
                         if (previousMessage == null || previousMessage != message)
                         {
                             SendMessageToServer(message);
@@ -57,10 +79,13 @@ namespace Telexistence
                         }
                     }
                 }
+
+                // Wait for a fixed time interval before sending the next update
                 yield return new WaitForSeconds(1f / 5f);
             }
         }
 
+        // Function to send a message to the server
         private void SendMessageToServer(string message)
         {
             if (_client != null && _client.Connected)
@@ -77,6 +102,7 @@ namespace Telexistence
             }
         }
 
+        // Function to connect to the server
         private void ConnectToServer()
         {
             try
@@ -91,6 +117,7 @@ namespace Telexistence
             }
         }
 
+        // Function to read data from the server asynchronously
         private async void ReadDataFromServerAsync(CancellationToken cancellationToken)
         {
             if (_stream == null) return;
@@ -113,16 +140,23 @@ namespace Telexistence
                             return;
                         }
 
+                        // Append received data to the accumulatedData StringBuilder
                         accumulatedData.Append(Encoding.ASCII.GetString(buffer, 0, bytesRead));
 
+                        StringBuilder dataBuilder = new StringBuilder();
+
+                        // Process accumulated data line by line
                         while (accumulatedData.ToString().Contains("\n"))
                         {
+                            dataBuilder.Clear();
+
                             int newlineIndex = accumulatedData.ToString().IndexOf("\n");
-                            string data = accumulatedData.ToString().Substring(0, newlineIndex);
+                            dataBuilder.Append(accumulatedData.ToString().Substring(0, newlineIndex));
                             accumulatedData.Remove(0, newlineIndex + 1);
 
-                            //Debug.Log("Received data: " + data);
+                            string data = dataBuilder.ToString();
 
+                            // Parse and handle the received data
                             string[] values = data.Split(',');
 
                             // Handle message with position and joint angles
@@ -160,6 +194,12 @@ namespace Telexistence
                     {
                         Debug.LogWarning("Operation canceled.");
                     }
+                    catch (IOException e)
+                    {
+                        Debug.LogError("I/O exception occurred while reading data from server: " + e.Message);
+                        Dispose();
+                        return;
+                    }
                     catch (Exception e)
                     {
                         Debug.LogError("Failed to read data from server: " + e.Message);
@@ -168,7 +208,7 @@ namespace Telexistence
             }
         }
 
-
+        // Function to update robot transforms based on received joint angles and position
         private void UpdateRobotTransforms(float[] jointAngles, Vector3 position, Vector3 rotation)
         {
             if (robot.Count != jointAngles.Length)
@@ -177,18 +217,41 @@ namespace Telexistence
                 return;
             }
 
-            robot[0].localEulerAngles = new Vector3(0, 0, -jointAngles[0]);
-            robot[1].localEulerAngles = new Vector3(0, -jointAngles[1], 0);
-            robot[2].localEulerAngles = new Vector3(0, jointAngles[2] + jointAngles[1], 0);
-            robot[3].localEulerAngles = new Vector3(-jointAngles[3], 0, 0);
-            robot[4].localEulerAngles = new Vector3(0, jointAngles[4], 0);
-            robot[5].localEulerAngles = new Vector3(-jointAngles[5], 0, 0);
+            // Update robot joint angles
+            for (int i = 0; i < jointAngles.Length; i++)
+            {
+                Vector3 rot = Vector3.zero;
+                switch (i)
+                {
+                    case 0:
+                        rot = new Vector3(0, 0, -jointAngles[i]);
+                        break;
+                    case 1:
+                        rot = new Vector3(0, -jointAngles[i], 0);
+                        break;
+                    case 2:
+                        rot = new Vector3(0, jointAngles[i] + jointAngles[i - 1], 0);
+                        break;
+                    case 3:
+                        rot = new Vector3(-jointAngles[i], 0, 0);
+                        break;
+                    case 4:
+                        rot = new Vector3(0, jointAngles[i], 0);
+                        break;
+                    case 5:
+                        rot = new Vector3(-jointAngles[i], 0, 0);
+                        break;
+                }
+                robot[i].localEulerAngles = rot;
+            }
 
+            // Update robot position and rotation
             worldPosition.localPosition = new Vector3(-position.x / 1000, position.y / 1000, position.z / 1000);
             Vector3 eulerAngles = CreateQuaternionFromFanucWPR(rotation.x, rotation.y, rotation.z).eulerAngles;
             worldPosition.localEulerAngles = new Vector3(eulerAngles.x, -eulerAngles.y, -eulerAngles.z);
         }
 
+        // Function to convert a Quaternion to FANUC WPR (Wrist, Pitch, Roll) angles
         private Vector3 CreateFanucWPRFromQuaternion(Quaternion q)
         {
             float W = Mathf.Atan2(2 * ((q.w * q.x) + (q.y * q.z)), 1 - 2 * (Mathf.Pow(q.x, 2) + Mathf.Pow(q.y, 2))) * (180 / Mathf.PI);
@@ -197,6 +260,8 @@ namespace Telexistence
 
             return new Vector3(W, -P, -R);
         }
+
+        // Function to convert FANUC WPR (Wrist, Pitch, Roll) angles to a Quaternion
         public Quaternion CreateQuaternionFromFanucWPR(float W, float P, float R)
         {
             float Wrad = W * (Mathf.PI / 180);
@@ -211,11 +276,13 @@ namespace Telexistence
             return new Quaternion(qx, qy, qz, qw);
         }
 
+        // Function to be called when the script is disabled
         void OnDisable()
         {
             Dispose();
         }
 
+        // Function to clean up resources when disposing
         private void Dispose()
         {
             if (_cancellationTokenSource != null)
@@ -237,6 +304,5 @@ namespace Telexistence
                 _client = null;
             }
         }
-
     }
 }
