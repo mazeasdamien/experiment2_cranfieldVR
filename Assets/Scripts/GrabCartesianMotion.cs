@@ -3,90 +3,109 @@ using System.Collections.Generic;
 using UnityEngine;
 using Leap.Unity.Interaction;
 
-public class GrabCartesianMotion : MonoBehaviour
+namespace Telexistence
 {
-    [SerializeField] private AudioClip grabStartSound;
-    [SerializeField] private AudioClip grabEndSound;
-    private AudioSource audioSource;
-
-    [SerializeField] private Renderer otherGameObjectRenderer;
-    private Color initialColor;
-    [SerializeField] private Color hoverColor;
-    [SerializeField] private Color grabColor;
-
-    private InteractionBehaviour interactionBehaviour;
-    private Rigidbody rigidBody;
-
-    private LockRotation lockRotation;
-
-    private Quaternion rotationBeforeGrab;
-
-    public GameObject transformObj;
-
-    private void Start()
+    public class GrabCartesianMotion : MonoBehaviour
     {
-        interactionBehaviour = GetComponent<InteractionBehaviour>();
-        rigidBody = GetComponent<Rigidbody>();
-        audioSource = GetComponent<AudioSource>();
+        [SerializeField] private AudioClip grabStartSound;
+        [SerializeField] private AudioClip grabEndSound;
+        private AudioSource audioSource;
 
-        lockRotation = GetComponent<LockRotation>();
+        [SerializeField] private Renderer otherGameObjectRenderer;
+        private Color initialColor;
+        [SerializeField] private Color hoverColor;
+        [SerializeField] private Color grabColor;
 
-        initialColor = otherGameObjectRenderer.material.color;
+        private InteractionBehaviour interactionBehaviour;
+        private Rigidbody rigidBody;
+        public FanucHandler fanucHandler;
 
-        interactionBehaviour.OnGraspBegin += OnGraspBegin;
-        interactionBehaviour.OnGraspEnd += OnGraspEnd;
-        interactionBehaviour.OnHoverBegin += OnHoverBegin;
-        interactionBehaviour.OnHoverEnd += OnHoverEnd;
-        interactionBehaviour.ignoreContact = true;
-    }
+        private LockRotation lockRotation;
 
-    private void OnGraspBegin()
-    {
-        transformObj.SetActive(false);
-        rotationBeforeGrab = transform.rotation;
-        lockRotation.initialRotation = rotationBeforeGrab;
-        interactionBehaviour.ignoreContact = false;
-        rigidBody.constraints = RigidbodyConstraints.None;
-        lockRotation.lockRotation = true;
+        private Quaternion rotationBeforeGrab;
 
+        public GameObject transformObj;
 
-        audioSource.PlayOneShot(grabStartSound);
-        otherGameObjectRenderer.material.color = grabColor;
-    }
-
-    private void OnGraspEnd()
-    {
-        transformObj.SetActive(true);
-        interactionBehaviour.ignoreContact = true;
-        rigidBody.constraints = RigidbodyConstraints.FreezeAll;
-        lockRotation.lockRotation = false;
-        transform.rotation = lockRotation.initialRotation;
-        audioSource.PlayOneShot(grabEndSound);
-        otherGameObjectRenderer.material.color = initialColor;
-        transform.rotation = rotationBeforeGrab;
-    }
-
-    private void OnHoverBegin()
-    {
-        if (!interactionBehaviour.isGrasped)
+        private void Start()
         {
-            otherGameObjectRenderer.material.color = hoverColor;
-        }
-    }
+            interactionBehaviour = GetComponent<InteractionBehaviour>();
+            rigidBody = GetComponent<Rigidbody>();
+            audioSource = GetComponent<AudioSource>();
 
-    private void OnHoverEnd()
-    {
-        if (!interactionBehaviour.isGrasped)
+            lockRotation = GetComponent<LockRotation>();
+
+            initialColor = otherGameObjectRenderer.material.color;
+
+            interactionBehaviour.OnGraspBegin += OnGraspBegin;
+            interactionBehaviour.OnGraspEnd += OnGraspEnd;
+            interactionBehaviour.OnHoverBegin += OnHoverBegin;
+            interactionBehaviour.OnHoverEnd += OnHoverEnd;
+            interactionBehaviour.ignoreContact = true;
+        }
+
+        private void OnGraspBegin()
         {
-            otherGameObjectRenderer.material.color = initialColor;
-        }
-    }
+            transformObj.SetActive(false);
+            rotationBeforeGrab = transform.rotation;
+            lockRotation.initialRotation = rotationBeforeGrab;
+            interactionBehaviour.ignoreContact = false;
+            rigidBody.constraints = RigidbodyConstraints.None;
+            lockRotation.lockRotation = true;
 
-    private void OnDestroy()
-    {
-        interactionBehaviour.OnGraspBegin -= OnGraspBegin;
-        interactionBehaviour.OnGraspEnd -= OnGraspEnd;
-        interactionBehaviour.OnHoverBegin -= OnHoverBegin;
-        interactionBehaviour.OnHoverEnd -= OnHoverEnd;
+
+            audioSource.PlayOneShot(grabStartSound);
+            otherGameObjectRenderer.material.color = grabColor;
+        }
+
+        private void OnGraspEnd()
+        {
+            transformObj.SetActive(true);
+            interactionBehaviour.ignoreContact = true;
+            rigidBody.constraints = RigidbodyConstraints.FreezeAll;
+            lockRotation.lockRotation = false;
+            transform.rotation = lockRotation.initialRotation;
+            audioSource.PlayOneShot(grabEndSound);
+            if (fanucHandler.messageReachability == true)
+            {
+                otherGameObjectRenderer.material.color = initialColor;
+            }
+            else
+            {
+                otherGameObjectRenderer.material.color = Color.red;
+            }
+            transform.rotation = rotationBeforeGrab;
+        }
+
+        private void OnHoverBegin()
+        {
+            if (!interactionBehaviour.isGrasped && fanucHandler.messageReachability == true)
+            {
+                otherGameObjectRenderer.material.color = hoverColor;
+            }
+            else
+            {
+                otherGameObjectRenderer.material.color = Color.red;
+            }
+        }
+
+        private void OnHoverEnd()
+        {
+            if (!interactionBehaviour.isGrasped && fanucHandler.messageReachability == true)
+            {
+                otherGameObjectRenderer.material.color = initialColor;
+            }
+            else
+            {
+                otherGameObjectRenderer.material.color = Color.red;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            interactionBehaviour.OnGraspBegin -= OnGraspBegin;
+            interactionBehaviour.OnGraspEnd -= OnGraspEnd;
+            interactionBehaviour.OnHoverBegin -= OnHoverBegin;
+            interactionBehaviour.OnHoverEnd -= OnHoverEnd;
+        }
     }
 }

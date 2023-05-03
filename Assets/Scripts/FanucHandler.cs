@@ -23,6 +23,7 @@ namespace Telexistence
         private Vector3 tempRot = new();
         string previousMessage = null;
         private CancellationTokenSource _cancellationTokenSource;
+        public bool messageReachability;
 
         void Start()
         {
@@ -68,7 +69,6 @@ namespace Telexistence
                 {
                     byte[] data = Encoding.ASCII.GetBytes(message);
                     _stream.Write(data, 0, data.Length);
-                    Debug.Log("Sent message to server: " + message);
                 }
                 catch (Exception e)
                 {
@@ -76,7 +76,6 @@ namespace Telexistence
                 }
             }
         }
-
 
         private void ConnectToServer()
         {
@@ -106,6 +105,14 @@ namespace Telexistence
                     try
                     {
                         int bytesRead = await _stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
+
+                        if (bytesRead == 0)
+                        {
+                            Debug.LogWarning("Server closed the connection.");
+                            Dispose();
+                            return;
+                        }
+
                         accumulatedData.Append(Encoding.ASCII.GetString(buffer, 0, bytesRead));
 
                         while (accumulatedData.ToString().Contains("\n"))
@@ -114,10 +121,11 @@ namespace Telexistence
                             string data = accumulatedData.ToString().Substring(0, newlineIndex);
                             accumulatedData.Remove(0, newlineIndex + 1);
 
-                            Debug.Log("Received data: " + data);
+                            //Debug.Log("Received data: " + data);
 
                             string[] values = data.Split(',');
 
+                            // Handle message with position and joint angles
                             if (values.Length == 12)
                             {
                                 // Parse joint angles and xyzwpr position
@@ -136,11 +144,21 @@ namespace Telexistence
 
                                 UpdateRobotTransforms(jointAngles, new Vector3(x, y, z), new Vector3(w, p, r));
                             }
+                            // Handle message with reachability information
+                            else if (values.Length == 1)
+                            {
+                                bool.TryParse(values[0], out messageReachability);
+                                Debug.Log("Message Reachability: " + messageReachability);
+                            }
                             else
                             {
-                                Debug.LogError("Received incorrect number of values: " + values.Length);
+                                Debug.LogError("Received incorrect number of values: " + values.Length + ". Data: " + data);
                             }
                         }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        Debug.LogWarning("Operation canceled.");
                     }
                     catch (Exception e)
                     {
@@ -149,6 +167,7 @@ namespace Telexistence
                 }
             }
         }
+
 
         private void UpdateRobotTransforms(float[] jointAngles, Vector3 position, Vector3 rotation)
         {
