@@ -1,152 +1,96 @@
+using System.Collections;
 using System.Collections.Generic;
-using System.Threading;
 using UnityEngine;
 using UnityEngine.UI;
 using Microsoft.Azure.Kinect.Sensor;
-using Image = Microsoft.Azure.Kinect.Sensor.Image;
-
-public class KinectDevice
-{
-    public Device device;
-    public Texture2D texture;
-    public Color32[] colorArray;
-
-    public KinectDevice(Device device, Texture2D texture, Color32[] colorArray)
-    {
-        this.device = device;
-        this.texture = texture;
-        this.colorArray = colorArray;
-    }
-}
+using System.Runtime.InteropServices;
 
 public class KinectHandler : MonoBehaviour
 {
     public RawImage[] rawImages;
-    public string[] desiredSerialNumbers;
+    public int width = 1280;
+    public int height = 720;
 
-    private List<KinectDevice> kinectDevices;
-    private Thread[] imageProcessingThreads;
+    private Device[] _devices;
+    private Transformation[] _transformations;
+    private Texture2D[] _colorTextures;
 
     void Start()
     {
-        kinectDevices = new List<KinectDevice>();
-        imageProcessingThreads = new Thread[desiredSerialNumbers.Length];
-
-        int deviceCount = Device.GetInstalledCount();
-
-        foreach (string desiredSerialNumber in desiredSerialNumbers)
-        {
-            bool deviceFound = false;
-
-            for (int i = 0; i < deviceCount; i++)
-            {
-                using (Device tempDevice = Device.Open(i))
-                {
-                    if (tempDevice.SerialNum == desiredSerialNumber)
-                    {
-                        deviceFound = true;
-
-                        DeviceConfiguration config = new DeviceConfiguration
-                        {
-                            ColorFormat = ImageFormat.ColorBGRA32,
-                            ColorResolution = ColorResolution.R720p,
-                            DepthMode = DepthMode.NFOV_2x2Binned,
-                            SynchronizedImagesOnly = true,
-                        };
-
-                        tempDevice.StartCameras(config);
-
-                        (int textureWidth, int textureHeight) = GetColorResolutionDimensions(config.ColorResolution);
-                        Texture2D kinectTexture = new Texture2D(textureWidth, textureHeight, TextureFormat.BGRA32, false);
-                        Color32[] colorArray = new Color32[textureWidth * textureHeight];
-
-                        KinectDevice kinectDevice = new KinectDevice(tempDevice, kinectTexture, colorArray);
-                        kinectDevices.Add(kinectDevice);
-
-                        break;
-                    }
-                }
-            }
-
-            if (!deviceFound)
-            {
-                Debug.LogError($"Device with serial number {desiredSerialNumber} not found.");
-            }
-        }
-
-        for (int i = 0; i < rawImages.Length; i++)
-        {
-            rawImages[i].texture = kinectDevices[i].texture;
-        }
-    }
-
-    private (int, int) GetColorResolutionDimensions(ColorResolution resolution)
-    {
-        switch (resolution)
-        {
-            case ColorResolution.R720p:
-                return (1280, 720);
-            case ColorResolution.R1080p:
-                return (1920, 1080);
-            case ColorResolution.R1440p:
-                return (2560, 1440);
-            case ColorResolution.R1536p:
-                return (2048, 1536);
-            case ColorResolution.R2160p:
-                return (3840, 2160);
-            case ColorResolution.R3072p:
-                return (4096, 3072);
-            default:
-                Debug.LogError("Unsupported color resolution.");
-                return (0, 0);
-        }
+        InitializeAzureKinectSensors();
     }
 
     void Update()
-    {/*
-        for (int i = 0; i < kinectDevices.Count; i++)
-        {
-            if (kinectDevices[i].device != null && !kinectDevices[i].device.IsDisposed &&
-                (imageProcessingThreads[i] == null || !imageProcessingThreads[i].IsAlive))
-            {
-                Capture capture = kinectDevices[i].device.GetCapture();
-                if (capture != null)
-                {
-                    capture.Reference();
-                    imageProcessingThreads[i] = new Thread(() => ProcessImage(capture, kinectDevices[i]));
-                    imageProcessingThreads[i].Start();
-                }
-            }
-        }*/
+    {
+        UpdateColorFrames();
     }
 
-
-    private void ProcessImage(Capture capture, KinectDevice kinectDevice)
+    private void InitializeAzureKinectSensors()
     {
-        using (capture)
+        int deviceCount = Device.GetInstalledCount();
+
+        _devices = new Device[deviceCount];
+        _transformations = new Transformation[deviceCount];
+        _colorTextures = new Texture2D[deviceCount];
+
+        for (int i = 0; i < deviceCount; i++)
         {
-            Image colorImage = capture.Color;
-            BGRA[] colorData = colorImage.GetPixels<BGRA>().ToArray();
-
-            for (int i = 0; i < colorData.Length; i++)
+            _devices[i] = Device.Open(i);
+            _devices[i].StartCameras(new DeviceConfiguration
             {
-                kinectDevice.colorArray[i] = new Color32(colorData[i].R, colorData[i].G, colorData[i].B, colorData[i].A);
-            }
-
-            UnityMainThreadDispatcher.Instance().Enqueue(() =>
-            {
-                kinectDevice.texture.SetPixels32(kinectDevice.colorArray);
-                kinectDevice.texture.Apply();
+                ColorFormat = ImageFormat.ColorBGRA32,
+                ColorResolution = ColorResolution.R720p,
+                DepthMode = DepthMode.NFOV_2x2Binned,
+                SynchronizedImagesOnly = true,
             });
+
+            _transformations[i] = _devices[i].GetCalibration().CreateTransformation();
+            _colorTextures[i] = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            rawImages[i].texture = _colorTextures[i];
         }
     }
 
+    private void UpdateColorFrames()
+    {
+        for (int i = 0; i < _devices.Length; i++)
+        {
+            using (Capture capture = _devices[i].GetCapture())
+            {
+                Microsoft.Azure.Kinect.Sensor.Image colorImage = capture.Color;
+                if (colorImage != null)
+                {
+                    CopyColorDataToTexture(colorImage, _colorTextures[i]);
+                    _colorTextures[i].Apply();
+                }
+            }
+        }
+    }
+
+    private void CopyColorDataToTexture(Microsoft.Azure.Kinect.Sensor.Image colorImage, Texture2D targetTexture)
+    {
+        byte[] data = colorImage.Memory.ToArray();
+        Color32[] colorData = new Color32[data.Length / 4];
+        for (int i = 0; i < colorData.Length; i++)
+        {
+            int index = i * 4;
+            colorData[i] = new Color32(data[index + 2], data[index + 1], data[index], data[index + 3]);
+        }
+
+        targetTexture.SetPixels32(colorData);
+    }
+
+
+
     void OnDestroy()
     {
-        foreach (var kinectDevice in kinectDevices)
+        for (int i = 0; i < _devices.Length; i++)
         {
-            kinectDevice.device.StopCameras();
-            kinectDevice.device.Dispose();
+            if (_devices[i] != null)
+            {
+                _devices[i].StopCameras();
+                _devices[i].Dispose();
+                _devices[i] = null;
+            }
         }
     }
 }
