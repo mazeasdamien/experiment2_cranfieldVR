@@ -35,7 +35,7 @@ namespace Telexistence
         private CancellationTokenSource _cancellationTokenSource;
 
         // Message reachability flag
-        public bool messageReachability;
+        public bool messageReachability =true;
 
         void Start()
         {

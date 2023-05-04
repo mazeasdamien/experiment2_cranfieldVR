@@ -35,6 +35,11 @@ namespace Leap.InteractionEngine.Examples
 
         private HashSet<TranslationAxis> _activeTranslationAxes = new HashSet<TranslationAxis>();
 
+        public bool IsHandleBeingManipulated
+        {
+            get { return _activeHandles.Count > 0; }
+        }
+
         void Start()
         {
             if (interactionManager == null)

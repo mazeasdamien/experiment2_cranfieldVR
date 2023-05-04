@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Leap.Unity.Interaction;
+using Leap.InteractionEngine.Examples;
 
 namespace Telexistence
 {
@@ -26,6 +27,8 @@ namespace Telexistence
 
         public GameObject transformObj;
 
+        public TransformTool transformTool;
+
         private void Start()
         {
             interactionBehaviour = GetComponent<InteractionBehaviour>();
@@ -41,6 +44,37 @@ namespace Telexistence
             interactionBehaviour.OnHoverBegin += OnHoverBegin;
             interactionBehaviour.OnHoverEnd += OnHoverEnd;
             interactionBehaviour.ignoreContact = true;
+
+            UpdateColor();
+        }
+
+
+        private void Update()
+        {
+            if (interactionBehaviour.isGrasped || transformTool.IsHandleBeingManipulated)
+            {
+                UpdateColor();
+            }
+        }
+
+        private void UpdateColor()
+        {
+            if (fanucHandler.messageReachability == false)
+            {
+                otherGameObjectRenderer.material.color = Color.red;
+            }
+            else if (interactionBehaviour.isGrasped)
+            {
+                otherGameObjectRenderer.material.color = grabColor;
+            }
+            else if (interactionBehaviour.isHovered)
+            {
+                otherGameObjectRenderer.material.color = hoverColor;
+            }
+            else
+            {
+                otherGameObjectRenderer.material.color = initialColor;
+            }
         }
 
         private void OnGraspBegin()
@@ -51,10 +85,8 @@ namespace Telexistence
             interactionBehaviour.ignoreContact = false;
             rigidBody.constraints = RigidbodyConstraints.None;
             lockRotation.lockRotation = true;
-
-
+            UpdateColor();
             audioSource.PlayOneShot(grabStartSound);
-            otherGameObjectRenderer.material.color = grabColor;
         }
 
         private void OnGraspEnd()
@@ -65,39 +97,18 @@ namespace Telexistence
             lockRotation.lockRotation = false;
             transform.rotation = lockRotation.initialRotation;
             audioSource.PlayOneShot(grabEndSound);
-            if (fanucHandler.messageReachability == true)
-            {
-                otherGameObjectRenderer.material.color = initialColor;
-            }
-            else
-            {
-                otherGameObjectRenderer.material.color = Color.red;
-            }
+            UpdateColor();
             transform.rotation = rotationBeforeGrab;
         }
 
         private void OnHoverBegin()
         {
-            if (!interactionBehaviour.isGrasped && fanucHandler.messageReachability == true)
-            {
-                otherGameObjectRenderer.material.color = hoverColor;
-            }
-            else
-            {
-                otherGameObjectRenderer.material.color = Color.red;
-            }
+            UpdateColor();
         }
 
         private void OnHoverEnd()
         {
-            if (!interactionBehaviour.isGrasped && fanucHandler.messageReachability == true)
-            {
-                otherGameObjectRenderer.material.color = initialColor;
-            }
-            else
-            {
-                otherGameObjectRenderer.material.color = Color.red;
-            }
+            UpdateColor();
         }
 
         private void OnDestroy()
