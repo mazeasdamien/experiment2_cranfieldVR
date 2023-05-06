@@ -1,96 +1,140 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Microsoft.Azure.Kinect.Sensor;
-using System.Runtime.InteropServices;
+using System.Collections.Generic;
+using System;
+using System.Threading.Tasks;
+using System.Threading;
+using UnityEngine.VFX;
 
 public class KinectHandler : MonoBehaviour
 {
-    public RawImage[] rawImages;
+    public RawImage rawImage;
     public int width = 1280;
     public int height = 720;
 
-    private Device[] _devices;
-    private Transformation[] _transformations;
-    private Texture2D[] _colorTextures;
+    public Device _device;
+    private Transformation _transformation;
+    private Texture2D _colorTexture;
+    private byte[] _colorImageData;
+    private bool _dataReady;
+    public int id;
+
+    public VisualEffect effect;
+
+    Mesh mesh;
+    readonly List<Vector3> vertices = new();
+    readonly List<Color32> colors = new();
+    readonly List<int> indices = new();
 
     void Start()
     {
-        InitializeAzureKinectSensors();
+        InitializeAzureKinectSensor();
+        Task.Run(() => UpdateColorFrame(CancellationToken.None));
     }
 
     void Update()
     {
-        UpdateColorFrames();
-    }
-
-    private void InitializeAzureKinectSensors()
-    {
-        int deviceCount = Device.GetInstalledCount();
-
-        _devices = new Device[deviceCount];
-        _transformations = new Transformation[deviceCount];
-        _colorTextures = new Texture2D[deviceCount];
-
-        for (int i = 0; i < deviceCount; i++)
+        if (_dataReady)
         {
-            _devices[i] = Device.Open(i);
-            _devices[i].StartCameras(new DeviceConfiguration
-            {
-                ColorFormat = ImageFormat.ColorBGRA32,
-                ColorResolution = ColorResolution.R720p,
-                DepthMode = DepthMode.NFOV_2x2Binned,
-                SynchronizedImagesOnly = true,
-            });
-
-            _transformations[i] = _devices[i].GetCalibration().CreateTransformation();
-            _colorTextures[i] = new Texture2D(width, height, TextureFormat.RGBA32, false);
-            rawImages[i].texture = _colorTextures[i];
+            UpdateTexture();
+            GenerateMesh();
+            effect.SetMesh("RemoteData", mesh);
+            _dataReady = false;
         }
     }
 
-    private void UpdateColorFrames()
+    private void InitializeAzureKinectSensor()
     {
-        for (int i = 0; i < _devices.Length; i++)
+        _device = Device.Open(id);
+        _device.StartCameras(new DeviceConfiguration
         {
-            using (Capture capture = _devices[i].GetCapture())
+            ColorFormat = ImageFormat.ColorBGRA32,
+            ColorResolution = ColorResolution.R720p,
+            DepthMode = DepthMode.NFOV_2x2Binned,
+            CameraFPS = FPS.FPS15,
+            SynchronizedImagesOnly = true,
+        });
+
+        _transformation = _device.GetCalibration().CreateTransformation();
+        _colorTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+        rawImage.texture = _colorTexture;
+    }
+
+    private async void UpdateColorFrame(CancellationToken cancellationToken)
+    {
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            using (Capture capture = await Task.Run(() => _device.GetCapture(), cancellationToken))
             {
                 Microsoft.Azure.Kinect.Sensor.Image colorImage = capture.Color;
                 if (colorImage != null)
                 {
-                    CopyColorDataToTexture(colorImage, _colorTextures[i]);
-                    _colorTextures[i].Apply();
+                    _colorImageData = colorImage.Memory.ToArray();
+                    _dataReady = true;
                 }
             }
+            await Task.Delay(100, cancellationToken);
         }
     }
 
-    private void CopyColorDataToTexture(Microsoft.Azure.Kinect.Sensor.Image colorImage, Texture2D targetTexture)
+    private void UpdateTexture()
     {
-        byte[] data = colorImage.Memory.ToArray();
-        Color32[] colorData = new Color32[data.Length / 4];
-        for (int i = 0; i < colorData.Length; i++)
+        // Swap R and B channels
+        for (int i = 0; i < _colorImageData.Length; i += 4)
         {
-            int index = i * 4;
-            colorData[i] = new Color32(data[index + 2], data[index + 1], data[index], data[index + 3]);
+            byte r = _colorImageData[i];
+            _colorImageData[i] = _colorImageData[i + 2];
+            _colorImageData[i + 2] = r;
         }
 
-        targetTexture.SetPixels32(colorData);
+        _colorTexture.LoadRawTextureData(_colorImageData);
+        _colorTexture.Apply();
     }
 
+    private void GenerateMesh()
+    {
+        // Clear previous mesh data
+        vertices.Clear();
+        colors.Clear();
+        indices.Clear();
 
+        // Generate mesh data
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                int index = (y * width + x) * 4;
+                Color32 color = new Color32(_colorImageData[index], _colorImageData[index + 1], _colorImageData[index + 2], 255);
+                Vector3 vertex = new Vector3(x, y, 0);
+
+                vertices.Add(vertex);
+                colors.Add(color);
+                indices.Add(vertices.Count - 1);
+            }
+        }
+
+        // Create mesh
+        if (mesh == null)
+        {
+            mesh = new Mesh();
+            mesh.MarkDynamic();
+        }
+
+        mesh.Clear();
+        mesh.SetVertices(vertices);
+        mesh.SetColors(colors);
+        mesh.SetIndices(indices.ToArray(), MeshTopology.Points, 0);
+        mesh.UploadMeshData(false);
+    }
 
     void OnDestroy()
     {
-        for (int i = 0; i < _devices.Length; i++)
+        if (_device != null)
         {
-            if (_devices[i] != null)
-            {
-                _devices[i].StopCameras();
-                _devices[i].Dispose();
-                _devices[i] = null;
-            }
+            _device.StopCameras();
+            _device.Dispose();
+            _device = null;
         }
     }
 }
