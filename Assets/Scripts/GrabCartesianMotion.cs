@@ -20,22 +20,20 @@ namespace Telexistence
         private InteractionBehaviour interactionBehaviour;
         private Rigidbody rigidBody;
         public FanucHandler fanucHandler;
+        [SerializeField] private GameObject canvas;
+        [SerializeField] private Camera mainCamera;
+        private Coroutine disableGraspingCoroutine;
 
-        private LockRotation lockRotation;
-
-        private Quaternion rotationBeforeGrab;
-
-        public GameObject transformObj;
-
-        public TransformTool transformTool;
+        [SerializeField] private float maxMovementSpeed = 5.0f;
+        [SerializeField] private float maxRotationSpeed = 300.0f;
+        private Vector3 lastPosition;
+        private Quaternion lastRotation;
 
         private void Start()
         {
             interactionBehaviour = GetComponent<InteractionBehaviour>();
             rigidBody = GetComponent<Rigidbody>();
             audioSource = GetComponent<AudioSource>();
-
-            lockRotation = GetComponent<LockRotation>();
 
             initialColor = otherGameObjectRenderer.material.color;
 
@@ -45,25 +43,61 @@ namespace Telexistence
             interactionBehaviour.OnHoverEnd += OnHoverEnd;
             interactionBehaviour.ignoreContact = true;
 
-            UpdateColor();
+            lastPosition = transform.position;
+            lastRotation = transform.rotation;
         }
-
 
         private void Update()
         {
-            if (interactionBehaviour.isGrasped || transformTool.IsHandleBeingManipulated)
+            if (interactionBehaviour.isGrasped)
             {
-                UpdateColor();
+                float movementSpeed = (transform.position - lastPosition).magnitude / Time.deltaTime;
+                float rotationSpeed = Quaternion.Angle(transform.rotation, lastRotation) / Time.deltaTime;
+
+                if (movementSpeed > maxMovementSpeed || rotationSpeed > maxRotationSpeed)
+                {
+                    interactionBehaviour.ReleaseFromGrasp();
+                    if (disableGraspingCoroutine != null)
+                    {
+                        StopCoroutine(disableGraspingCoroutine);
+                    }
+                    disableGraspingCoroutine = StartCoroutine(DisableGraspingTemporarily());
+                }
+            }
+
+            lastPosition = transform.position;
+            lastRotation = transform.rotation;
+
+            UpdateColor();
+        }
+
+        private IEnumerator DisableGraspingTemporarily()
+        {
+            interactionBehaviour.ignoreGrasping = true;
+            FaceCanvasToCamera();
+            canvas.SetActive(true);
+            yield return new WaitForSeconds(1.0f);
+            canvas.SetActive(false);
+            interactionBehaviour.ignoreGrasping = false;
+        }
+
+        private void FaceCanvasToCamera()
+        {
+            if (mainCamera != null && canvas != null)
+            {
+                Vector3 cameraForward = mainCamera.transform.forward;
+                cameraForward.y = 0; // Remove the vertical component to avoid undesired tilting of the canvas
+                Vector3 targetDirection = canvas.transform.position - mainCamera.transform.position;
+                targetDirection.y = 0;
+                Quaternion targetRotation = Quaternion.LookRotation(targetDirection, Vector3.up);
+                targetRotation *= Quaternion.Euler(0, 90, 0); // Apply the 90-degree offset
+                canvas.transform.rotation = targetRotation;
             }
         }
 
         private void UpdateColor()
         {
-            if (fanucHandler.messageReachability == false)
-            {
-                otherGameObjectRenderer.material.color = Color.red;
-            }
-            else if (interactionBehaviour.isGrasped)
+            if (interactionBehaviour.isGrasped)
             {
                 otherGameObjectRenderer.material.color = grabColor;
             }
@@ -79,26 +113,18 @@ namespace Telexistence
 
         private void OnGraspBegin()
         {
-            transformObj.SetActive(false);
-            rotationBeforeGrab = transform.rotation;
-            lockRotation.initialRotation = rotationBeforeGrab;
             interactionBehaviour.ignoreContact = false;
             rigidBody.constraints = RigidbodyConstraints.None;
-            lockRotation.lockRotation = true;
-            UpdateColor();
             audioSource.PlayOneShot(grabStartSound);
+            UpdateColor();
         }
 
         private void OnGraspEnd()
         {
-            transformObj.SetActive(true);
             interactionBehaviour.ignoreContact = true;
             rigidBody.constraints = RigidbodyConstraints.FreezeAll;
-            lockRotation.lockRotation = false;
-            transform.rotation = lockRotation.initialRotation;
             audioSource.PlayOneShot(grabEndSound);
             UpdateColor();
-            transform.rotation = rotationBeforeGrab;
         }
 
         private void OnHoverBegin()

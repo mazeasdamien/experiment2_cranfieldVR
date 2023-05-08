@@ -18,7 +18,5 @@ public class tracking : MonoBehaviour
 
         VarjoEyeTracking.EyeMeasurements measurements =  VarjoEyeTracking.GetEyeMeasurements();
         VarjoEyeTracking.GazeData data =  VarjoEyeTracking.GetGaze();
-        Debug.Log(measurements.leftEyeOpenness);
-        Debug.Log(measurements.rightEyeOpenness);
     }
 }
