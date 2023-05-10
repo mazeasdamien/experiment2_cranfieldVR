@@ -8,6 +8,10 @@ namespace Telexistence
 {
     public class GrabCartesianMotion : MonoBehaviour
     {
+        [SerializeField] private float raycastLength = 10.0f;
+        [SerializeField] private LayerMask floorLayer;
+        private Vector3 raycastDirection;
+
         [SerializeField] private AudioClip grabStartSound;
         [SerializeField] private AudioClip grabEndSound;
         private AudioSource audioSource;
@@ -21,7 +25,6 @@ namespace Telexistence
         private Rigidbody rigidBody;
         public FanucHandler fanucHandler;
         [SerializeField] private GameObject canvas;
-        [SerializeField] private Camera mainCamera;
         private Coroutine disableGraspingCoroutine;
 
         [SerializeField] private float maxMovementSpeed = 5.0f;
@@ -45,6 +48,29 @@ namespace Telexistence
 
             lastPosition = transform.position;
             lastRotation = transform.rotation;
+
+            raycastDirection = transform.right * raycastLength;
+        }
+
+        private void OnDrawGizmos()
+        {
+            DrawRay();
+        }
+
+        private void DrawRay()
+        {
+            Gizmos.color = Color.red;
+            RaycastHit hit;
+
+            if (Physics.Raycast(transform.position, raycastDirection, out hit, raycastLength, floorLayer))
+            {
+                Gizmos.DrawLine(transform.position, hit.point);
+                Gizmos.DrawSphere(hit.point, 0.2f);
+            }
+            else
+            {
+                Gizmos.DrawRay(transform.position, raycastDirection);
+            }
         }
 
         private void Update()
@@ -69,30 +95,17 @@ namespace Telexistence
             lastRotation = transform.rotation;
 
             UpdateColor();
+
+            raycastDirection = transform.right * raycastLength;
         }
 
         private IEnumerator DisableGraspingTemporarily()
         {
             interactionBehaviour.ignoreGrasping = true;
-            FaceCanvasToCamera();
             canvas.SetActive(true);
             yield return new WaitForSeconds(1.0f);
             canvas.SetActive(false);
             interactionBehaviour.ignoreGrasping = false;
-        }
-
-        private void FaceCanvasToCamera()
-        {
-            if (mainCamera != null && canvas != null)
-            {
-                Vector3 cameraForward = mainCamera.transform.forward;
-                cameraForward.y = 0; // Remove the vertical component to avoid undesired tilting of the canvas
-                Vector3 targetDirection = canvas.transform.position - mainCamera.transform.position;
-                targetDirection.y = 0;
-                Quaternion targetRotation = Quaternion.LookRotation(targetDirection, Vector3.up);
-                targetRotation *= Quaternion.Euler(0, 90, 0); // Apply the 90-degree offset
-                canvas.transform.rotation = targetRotation;
-            }
         }
 
         private void UpdateColor()

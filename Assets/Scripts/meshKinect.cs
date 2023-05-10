@@ -5,9 +5,16 @@ using Microsoft.Azure.Kinect.Sensor;
 using System.Threading.Tasks;
 using UnityEngine.VFX;
 using UnityEngine.UI;
+using TMPro;
 
 public class meshKinect : MonoBehaviour
 {
+    public TMP_Text depthText;
+    private int midDepth = -1;
+    private int prevDepth = -1;
+
+    public bool isRobotMoving = false;
+
     Device kinect;
     int depthWidth;
     int depthHeight;
@@ -16,14 +23,9 @@ public class meshKinect : MonoBehaviour
     Vector3[] vertices;
     Color32[] colors;
     int[] indeces;
-    Texture2D texture;
     Transformation transformation;
 
-    public int nearClip = 300;
-    public int farClip = 3000;
-    public int ID;
     public VisualEffect effect;
-    public RawImage rawImage;
 
     private void OnDestroy()
     {
@@ -37,9 +39,38 @@ public class meshKinect : MonoBehaviour
         Task t = KinectLoop(kinect);
     }
 
+    void Update()
+    {
+        if (depthText != null)
+        {
+            int midDepthInCm = Mathf.CeilToInt(midDepth / 10.0f);
+            int prevDepthInCm = Mathf.CeilToInt(prevDepth / 10.0f);
+
+            if (midDepthInCm == 0)
+            {
+                if (prevDepthInCm > 40)
+                {
+                    depthText.text = "Error";
+                }
+                else
+                {
+                    depthText.text = "Too close to acquire distance";
+                }
+                depthText.color = Color.red;
+            }
+            else
+            {
+                depthText.text = midDepthInCm.ToString() + " cm";
+                depthText.color = Color.black;
+            }
+            prevDepth = midDepth;
+        }
+    }
+
+
     void InitKinect()
     {
-        kinect = Device.Open(ID);
+        kinect = Device.Open(0);
         kinect.StartCameras(new DeviceConfiguration
         {
             ColorFormat = ImageFormat.ColorBGRA32,
@@ -62,7 +93,6 @@ public class meshKinect : MonoBehaviour
 
         vertices = new Vector3[num];
         colors = new Color32[num];
-        texture = new Texture2D(depthWidth, depthHeight);
         Vector2[] uv = new Vector2[num];
         Vector3[] normals = new Vector3[num];
         indeces = new int[6 * (depthWidth - 1) * (depthHeight - 1)];
@@ -85,85 +115,75 @@ public class meshKinect : MonoBehaviour
 
     private async Task KinectLoop(Device device)
     {
-        while (true)
-        {
-            using (Capture capture = await Task.Run(() => device.GetCapture()).ConfigureAwait(true))
+
+            ushort[] depthData;
+
+            while (true)
             {
-                Microsoft.Azure.Kinect.Sensor.Image modifiedColor = transformation.ColorImageToDepthCamera(capture);
-                BGRA[] colorArray = modifiedColor.GetPixels<BGRA>().ToArray();
-
-                Microsoft.Azure.Kinect.Sensor.Image cloudImage = transformation.DepthImageToPointCloud(capture.Depth);
-                Short3[] PointCloud = cloudImage.GetPixels<Short3>().ToArray();
-
-                int triangleIndex = 0;
-                int pointIndex = 0;
-                int topLeft, topRight, bottomLeft, bottomRight;
-                int tl, tr, bl, br;
-                for (int y = 0; y < depthHeight; y++)
+                using (Capture capture = await Task.Run(() => device.GetCapture()).ConfigureAwait(true))
                 {
-                    for (int x = 0; x < depthWidth; x++)
+                    Microsoft.Azure.Kinect.Sensor.Image modifiedColor = transformation.ColorImageToDepthCamera(capture);
+                    BGRA[] colorArray = modifiedColor.GetPixels<BGRA>().ToArray();
+
+                    Microsoft.Azure.Kinect.Sensor.Image cloudImage = transformation.DepthImageToPointCloud(capture.Depth);
+                    Short3[] PointCloud = cloudImage.GetPixels<Short3>().ToArray();
+                    Microsoft.Azure.Kinect.Sensor.Image depthImage = capture.Depth;
+
+                    if (depthImage != null)
                     {
-                        vertices[pointIndex].x = PointCloud[pointIndex].X * 0.001f;
-                        vertices[pointIndex].y = -PointCloud[pointIndex].Y * 0.001f;
-                        vertices[pointIndex].z = PointCloud[pointIndex].Z * 0.001f;
+                        int centerIndex = (depthImage.WidthPixels / 2) + (depthImage.HeightPixels / 2) * depthImage.WidthPixels;
+                        depthData = depthImage.GetPixels<ushort>().ToArray();
+                        midDepth = depthData[centerIndex];
+                    }
 
-                        colors[pointIndex].a = 255;
-                        colors[pointIndex].b = colorArray[pointIndex].B;
-                        colors[pointIndex].g = colorArray[pointIndex].G;
-                        colors[pointIndex].r = colorArray[pointIndex].R;
-
-                        if (x != (depthWidth - 1) && y != (depthHeight - 1))
+                    int triangleIndex = 0;
+                    int pointIndex = 0;
+                    int topLeft, topRight, bottomLeft, bottomRight;
+                    int tl, tr, bl, br;
+                    for (int y = 0; y < depthHeight; y++)
+                    {
+                        for (int x = 0; x < depthWidth; x++)
                         {
-                            topLeft = pointIndex;
-                            topRight = topLeft + 1;
-                            bottomLeft = topLeft + depthWidth;
-                            bottomRight = bottomLeft + 1;
-                            tl = PointCloud[topLeft].Z;
-                            tr = PointCloud[topRight].Z;
-                            bl = PointCloud[bottomLeft].Z;
-                            br = PointCloud[bottomRight].Z;
+                            vertices[pointIndex].x = PointCloud[pointIndex].X * 0.001f;
+                            vertices[pointIndex].y = -PointCloud[pointIndex].Y * 0.001f;
+                            vertices[pointIndex].z = PointCloud[pointIndex].Z * 0.001f;
 
-                            if (tl > nearClip && tr > nearClip && bl > nearClip && tl < farClip && tr < farClip && bl < farClip)
+                            colors[pointIndex].a = 255;
+                            colors[pointIndex].b = colorArray[pointIndex].B;
+                            colors[pointIndex].g = colorArray[pointIndex].G;
+                            colors[pointIndex].r = colorArray[pointIndex].R;
+
+                            if (x != (depthWidth - 1) && y != (depthHeight - 1))
                             {
+                                topLeft = pointIndex;
+                                topRight = topLeft + 1;
+                                bottomLeft = topLeft + depthWidth;
+                                bottomRight = bottomLeft + 1;
+                                tl = PointCloud[topLeft].Z;
+                                tr = PointCloud[topRight].Z;
+                                bl = PointCloud[bottomLeft].Z;
+                                br = PointCloud[bottomRight].Z;
+
                                 indeces[triangleIndex++] = topLeft;
                                 indeces[triangleIndex++] = topRight;
                                 indeces[triangleIndex++] = bottomLeft;
-                            }
-                            else
-                            {
-                                indeces[triangleIndex++] = 0;
-                                indeces[triangleIndex++] = 0;
-                                indeces[triangleIndex++] = 0;
-                            }
 
-                            if (bl > nearClip && tr > nearClip && br > nearClip && bl < farClip && tr < farClip && br < farClip)
-                            {
                                 indeces[triangleIndex++] = bottomLeft;
                                 indeces[triangleIndex++] = topRight;
                                 indeces[triangleIndex++] = bottomRight;
                             }
-                            else
-                            {
-                                indeces[triangleIndex++] = 0;
-                                indeces[triangleIndex++] = 0;
-                                indeces[triangleIndex++] = 0;
-                            }
+                            pointIndex++;
                         }
-                        pointIndex++;
                     }
+                if (!isRobotMoving)
+                {
+                    mesh.vertices = vertices;
+                    mesh.colors32 = colors;
+
+                    mesh.triangles = indeces;
+                    mesh.RecalculateBounds();
+                    effect.SetMesh("RemoteData", mesh);
                 }
-
-                texture.SetPixels32(colors);
-                texture.Apply();
-
-                rawImage.texture = texture; // Display color image on RawImage
-
-                mesh.vertices = vertices;
-                mesh.colors32 = colors;
-
-                mesh.triangles = indeces;
-                mesh.RecalculateBounds();
-                effect.SetMesh("RemoteData", mesh);
             }
         }
     }

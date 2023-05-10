@@ -36,6 +36,7 @@ namespace Telexistence
 
         // Message reachability flag
         public bool messageReachability =true;
+        public meshKinect meshKinect;
 
         void Start()
         {
@@ -183,7 +184,7 @@ namespace Telexistence
                                 UpdateRobotTransforms(jointAngles, new Vector3(x, y, z), new Vector3(w, p, r));
 
                                 // Use the digitalInput value as needed
-                                Debug.Log(digitalInputValue + "   " + digitalInput);
+                                //Debug.Log(digitalInputValue + "   " + digitalInput);
                             }
                             // Handle message with reachability information
                             else if (values.Length == 1)
