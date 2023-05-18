@@ -1,10 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Microsoft.Azure.Kinect.Sensor;
 using System.Threading.Tasks;
 using UnityEngine.VFX;
-using UnityEngine.UI;
 using TMPro;
 
 public class meshKinect : MonoBehaviour
@@ -27,6 +24,7 @@ public class meshKinect : MonoBehaviour
 
     public VisualEffect effect;
 
+
     private void OnDestroy()
     {
         kinect.StopCameras();
@@ -34,9 +32,11 @@ public class meshKinect : MonoBehaviour
 
     void Start()
     {
+
         InitKinect();
         InitMesh();
         Task t = KinectLoop(kinect);
+
     }
 
     void Update()

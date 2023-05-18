@@ -161,7 +161,7 @@ namespace Telexistence
                             string[] values = data.Split(',');
 
                             // Handle message with position, joint angles, and digital input value
-                            if (values.Length == 13)
+                            if (values.Length == 12)
                             {
                                 // Parse joint angles and xyzwpr position
                                 float[] jointAngles = new float[6];
@@ -177,14 +177,8 @@ namespace Telexistence
                                 float p = float.Parse(values[10]);
                                 float r = float.Parse(values[11]);
 
-                                // Parse digital input value
-                                int digitalInputValue = int.Parse(values[12]);
-                                bool digitalInput = digitalInputValue == 1;
-
                                 UpdateRobotTransforms(jointAngles, new Vector3(x, y, z), new Vector3(w, p, r));
 
-                                // Use the digitalInput value as needed
-                                //Debug.Log(digitalInputValue + "   " + digitalInput);
                             }
                             // Handle message with reachability information
                             else if (values.Length == 1)
