@@ -35,6 +35,7 @@ namespace Telexistence
         public VisualEffect dmeshTempEffect;
         private bool hasAppliedLastMesh = false;
         public Mesh lastMesh;
+        public modalities m;
 
         private void OnDestroy()
         {
@@ -60,44 +61,44 @@ namespace Telexistence
 
         void Update()
         {
-                int midDepthInCm = Mathf.CeilToInt(midDepth / 10.0f);
-                int prevDepthInCm = Mathf.CeilToInt(prevDepth / 10.0f);
+            int midDepthInCm = Mathf.CeilToInt(midDepth / 10.0f);
+            int prevDepthInCm = Mathf.CeilToInt(prevDepth / 10.0f);
 
-                if (midDepthInCm == 0)
-                {
+            if (midDepthInCm == 0)
+            {
                 lineCreator.lineDistance = 0;
-                    if (instantiatedText != null)
-                    {
-                        Destroy(instantiatedText);
-                        instantiatedText = null;
-                    }
-                }
-                else
+                if (instantiatedText != null)
                 {
-                    lineCreator.lineDistance = (midDepth / 10.0f) / 100;
-
-                    // Instantiate the text prefab if it doesn't exist
-                    if (instantiatedText == null)
-                    {
-                        instantiatedText = Instantiate(textPrefab, transform);
-                    }
-                    // Position the instantiated text in the middle of the line
-                    instantiatedText.transform.position = lineCreator.originObject.transform.position + lineCreator.originObject.transform.TransformDirection(0, lineCreator.lineDistance / 2, 0);
-
-                    // Set the text to display the distance
-                    TMP_Text tmpText = instantiatedText.GetComponentInChildren<TMP_Text>();
-                    tmpText.text = midDepthInCm.ToString() + " cm";
-
-                    // Increase the font size
-                    tmpText.fontSize = textsize;  // Adjust this value as needed
-
-                    // Make the text face the camera
-                    instantiatedText.transform.LookAt(Camera.main.transform);
-
-                    // The text will be flipped 180 degrees on its vertical axis after LookAt. Adjust it back.
-                    instantiatedText.transform.Rotate(0, 180, 0);
+                    Destroy(instantiatedText);
+                    instantiatedText = null;
                 }
-                prevDepth = midDepth;
+            }
+            else
+            {
+                lineCreator.lineDistance = (midDepth / 10.0f) / 100;
+
+                // Instantiate the text prefab if it doesn't exist
+                if (instantiatedText == null)
+                {
+                    instantiatedText = Instantiate(textPrefab, transform);
+                }
+                // Position the instantiated text in the middle of the line
+                instantiatedText.transform.position = lineCreator.originObject.transform.position + lineCreator.originObject.transform.TransformDirection(0, lineCreator.lineDistance / 2, 0);
+
+                // Set the text to display the distance
+                TMP_Text tmpText = instantiatedText.GetComponentInChildren<TMP_Text>();
+                tmpText.text = midDepthInCm.ToString() + " cm";
+
+                // Increase the font size
+                tmpText.fontSize = textsize;  // Adjust this value as needed
+
+                // Make the text face the camera
+                instantiatedText.transform.LookAt(Camera.main.transform);
+
+                // The text will be flipped 180 degrees on its vertical axis after LookAt. Adjust it back.
+                instantiatedText.transform.Rotate(0, 180, 0);
+            }
+            prevDepth = midDepth;
             // Save the last mesh before the robot starts moving
             if (!isRobotMoving && fanucHandler.receiving)
             {
@@ -245,17 +246,25 @@ namespace Telexistence
 
                     mesh.triangles = indeces;
                     mesh.RecalculateBounds();
-                    if (!isRobotMoving)
-                    {
 
-                        if (fanucHandler.receiving == false)
+                    if (m.CurrentModality == modalities.ModalityType.PointCloud || m.CurrentModality == modalities.ModalityType.PointCloudFeed2D)
+                    {
+                        if (!isRobotMoving)
                         {
-                            effect.SetMesh("RemoteData", mesh);
+
+                            if (fanucHandler.receiving == false)
+                            {
+                                effect.SetMesh("RemoteData", mesh);
+                            }
+                            else
+                            {
+                                effect.SetMesh("RemoteData", emptyMesh);
+                            }
                         }
-                        else
-                        {
-                            effect.SetMesh("RemoteData", emptyMesh);
-                        }
+                    }
+                    else
+                    {
+                        effect.SetMesh("RemoteData", emptyMesh);
                     }
                 }
             }

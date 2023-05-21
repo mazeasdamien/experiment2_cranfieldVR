@@ -37,6 +37,7 @@ namespace Telexistence
 
         // This is the Texture2D that will store the snapshot in a format that can be applied to a RawImage
         public Texture2D snapshotTexture { get; private set; }
+        public modalities m;
 
         private void Start()
         {
@@ -102,6 +103,8 @@ namespace Telexistence
                     {
                         // Convert BGRA to BGR format
                         Cv2.CvtColor(colourMat, bgrMat, ColorConversionCodes.BGRA2BGR);
+
+                        if (m.CurrentModality == modalities.ModalityType.Markers) {
 
                         CvAruco.DetectMarkers(bgrMat, arucoDictionary, out var corners, out var ids, detectorParameters, out var rejectedPoints);
                         CvAruco.DrawDetectedMarkers(bgrMat, corners, ids, Scalar.Green);
@@ -181,6 +184,7 @@ namespace Telexistence
                             }
                             markerObjects.Clear();
                         }
+                    }
 
                         if (outputImage.texture != null)
                         {

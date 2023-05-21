@@ -190,7 +190,7 @@ namespace Telexistence
                             else if (values.Length == 1)
                             {
                                 bool.TryParse(values[0], out messageReachability);
-                                Debug.Log("Message Reachability: " + messageReachability);
+                                //Debug.Log("Message Reachability: " + messageReachability);
                             }
                             else
                             {
@@ -219,7 +219,7 @@ namespace Telexistence
         private IEnumerator ResetReceivingCoroutine()
         {
             // Wait for 0.5 seconds
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(2f);
 
             // Set receiving back to false
             receiving = false;
