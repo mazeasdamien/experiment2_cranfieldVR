@@ -15,7 +15,10 @@ namespace VarjoExample
             meshRenderers = GetComponentsInChildren<MeshRenderer>();
             foreach (var meshRenderer in meshRenderers)
             {
-                originalColors.Add(meshRenderer.material.color);
+                if (meshRenderer.tag != "UI")
+                {
+                    originalColors.Add(meshRenderer.material.color);
+                }
             }
         }
     }

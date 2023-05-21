@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Telexistence;
+using UnityEngine.UI;
 
 namespace VarjoExample
 {
@@ -19,6 +21,9 @@ namespace VarjoExample
         private Rigidbody heldObjectBody;
         private Color originalColor;
         private bool ispicked;
+
+        public videoKinect videoKinect;
+        public RawImage rawImage;
 
         void Awake()
         {
@@ -80,6 +85,7 @@ namespace VarjoExample
                     {
                         meshRenderer.material.color = hoverColor;
                     }
+
                 }
             }
         }
@@ -106,25 +112,24 @@ namespace VarjoExample
             {
                 return;
             }
+                // Drop interactable if already held
+                if (currentInteractable.activeHand)
+                {
+                    currentInteractable.activeHand.Drop();
+                }
 
-            // Drop interactable if already held
-            if (currentInteractable.activeHand)
-            {
-                currentInteractable.activeHand.Drop();
-            }
+                // Attach
+                heldObjectBody = currentInteractable.GetComponent<Rigidbody>();
+                fixedJoint.connectedBody = heldObjectBody;
 
-            // Attach
-            heldObjectBody = currentInteractable.GetComponent<Rigidbody>();
-            fixedJoint.connectedBody = heldObjectBody;
+                // Change color when picked
+                foreach (var meshRenderer in currentInteractable.meshRenderers)
+                {
+                    meshRenderer.material.color = pickedColor;
+                }
 
-            // Change color when picked
-            foreach (var meshRenderer in currentInteractable.meshRenderers)
-            {
-                meshRenderer.material.color = pickedColor;
-            }
-
-            // Set active hand
-            currentInteractable.activeHand = this;
+                // Set active hand
+                currentInteractable.activeHand = this;
         }
 
         public void Drop()
@@ -132,19 +137,18 @@ namespace VarjoExample
             ispicked= false;
             if (!currentInteractable)
                 return;
+                // Detach
+                fixedJoint.connectedBody = null;
 
-            // Detach
-            fixedJoint.connectedBody = null;
+                // Restore original color on drop
+                for (int i = 0; i < currentInteractable.meshRenderers.Length; i++)
+                {
+                    currentInteractable.meshRenderers[i].material.color = currentInteractable.originalColors[i];
+                }
 
-            // Restore original color on drop
-            for (int i = 0; i < currentInteractable.meshRenderers.Length; i++)
-            {
-                currentInteractable.meshRenderers[i].material.color = currentInteractable.originalColors[i];
-            }
-
-            // Clear
-            currentInteractable.activeHand = null;
-            currentInteractable = null;
+                // Clear
+                currentInteractable.activeHand = null;
+                currentInteractable = null;
         }
 
         private Interactable GetNearestInteractable()

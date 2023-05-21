@@ -6,6 +6,7 @@ using System.Text;
 using System.Collections;
 using System.Threading;
 using System.IO;
+using System.Diagnostics.Eventing.Reader;
 
 namespace Telexistence
 {
@@ -37,6 +38,8 @@ namespace Telexistence
         // Message reachability flag
         public bool messageReachability =true;
         public meshKinect meshKinect;
+
+        public bool receiving;
 
         void Start()
         {
@@ -179,6 +182,9 @@ namespace Telexistence
 
                                 UpdateRobotTransforms(jointAngles, new Vector3(x, y, z), new Vector3(w, p, r));
 
+                                // Set receiving to true and start the reset coroutine
+                                receiving = true;
+                                StartCoroutine(ResetReceivingCoroutine());
                             }
                             // Handle message with reachability information
                             else if (values.Length == 1)
@@ -210,6 +216,14 @@ namespace Telexistence
             }
         }
 
+        private IEnumerator ResetReceivingCoroutine()
+        {
+            // Wait for 0.5 seconds
+            yield return new WaitForSeconds(1f);
+
+            // Set receiving back to false
+            receiving = false;
+        }
 
         // Function to update robot transforms based on received joint angles and position
         private void UpdateRobotTransforms(float[] jointAngles, Vector3 position, Vector3 rotation)

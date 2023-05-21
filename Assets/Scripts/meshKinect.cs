@@ -4,117 +4,172 @@ using System.Threading.Tasks;
 using UnityEngine.VFX;
 using TMPro;
 
-public class meshKinect : MonoBehaviour
+namespace Telexistence
 {
-    public TMP_Text depthText;
-    private int midDepth = -1;
-    private int prevDepth = -1;
-
-    public bool isRobotMoving = false;
-
-    Device kinect;
-    int depthWidth;
-    int depthHeight;
-    int num;
-    Mesh mesh;
-    Vector3[] vertices;
-    Color32[] colors;
-    int[] indeces;
-    Transformation transformation;
-
-    public VisualEffect effect;
-
-
-    private void OnDestroy()
+    public class meshKinect : MonoBehaviour
     {
-        kinect.StopCameras();
-    }
+        private int midDepth = -1;
+        private int prevDepth = -1;
 
-    void Start()
-    {
+        public bool isRobotMoving = false;
 
-        InitKinect();
-        InitMesh();
-        Task t = KinectLoop(kinect);
+        Device kinect;
+        int depthWidth;
+        int depthHeight;
+        int num;
+        Mesh mesh;
+        Mesh emptyMesh;
+        Vector3[] vertices;
+        Color32[] colors;
+        int[] indeces;
+        Transformation transformation;
 
-    }
+        public VisualEffect effect;
+        public FanucHandler fanucHandler;
+        public float maxDistance = 1.0f; // Define the maximum distance
+        public LineCreator lineCreator;
+        public GameObject textPrefab;
+        private GameObject instantiatedText = null;
+        public float textsize;
 
-    void Update()
-    {
-        if (depthText != null)
+        public VisualEffect dmeshTempEffect;
+        private bool hasAppliedLastMesh = false;
+        public Mesh lastMesh;
+
+        private void OnDestroy()
         {
-            int midDepthInCm = Mathf.CeilToInt(midDepth / 10.0f);
-            int prevDepthInCm = Mathf.CeilToInt(prevDepth / 10.0f);
-
-            if (midDepthInCm == 0)
+            if (mesh != null)
             {
-                if (prevDepthInCm > 40)
+                Destroy(mesh);
+            }
+            if (emptyMesh != null)
+            {
+                Destroy(emptyMesh);
+            }
+            kinect.StopCameras();
+        }
+
+        void Start()
+        {
+            mesh = new Mesh();
+            emptyMesh = new Mesh();
+            InitKinect();
+            InitMesh();
+            Task t = KinectLoop(kinect);
+        }
+
+        void Update()
+        {
+                int midDepthInCm = Mathf.CeilToInt(midDepth / 10.0f);
+                int prevDepthInCm = Mathf.CeilToInt(prevDepth / 10.0f);
+
+                if (midDepthInCm == 0)
                 {
-                    depthText.text = "Error";
+                lineCreator.lineDistance = 0;
+                    if (instantiatedText != null)
+                    {
+                        Destroy(instantiatedText);
+                        instantiatedText = null;
+                    }
                 }
                 else
                 {
-                    depthText.text = "Too close to acquire distance";
+                    lineCreator.lineDistance = (midDepth / 10.0f) / 100;
+
+                    // Instantiate the text prefab if it doesn't exist
+                    if (instantiatedText == null)
+                    {
+                        instantiatedText = Instantiate(textPrefab, transform);
+                    }
+                    // Position the instantiated text in the middle of the line
+                    instantiatedText.transform.position = lineCreator.originObject.transform.position + lineCreator.originObject.transform.TransformDirection(0, lineCreator.lineDistance / 2, 0);
+
+                    // Set the text to display the distance
+                    TMP_Text tmpText = instantiatedText.GetComponentInChildren<TMP_Text>();
+                    tmpText.text = midDepthInCm.ToString() + " cm";
+
+                    // Increase the font size
+                    tmpText.fontSize = textsize;  // Adjust this value as needed
+
+                    // Make the text face the camera
+                    instantiatedText.transform.LookAt(Camera.main.transform);
+
+                    // The text will be flipped 180 degrees on its vertical axis after LookAt. Adjust it back.
+                    instantiatedText.transform.Rotate(0, 180, 0);
                 }
-                depthText.color = Color.red;
-            }
-            else
+                prevDepth = midDepth;
+            // Save the last mesh before the robot starts moving
+            if (!isRobotMoving && fanucHandler.receiving)
             {
-                depthText.text = midDepthInCm.ToString() + " cm";
-                depthText.color = Color.black;
+                lastMesh = mesh;
+                hasAppliedLastMesh = false;
             }
-            prevDepth = midDepth;
-        }
-    }
 
-
-    void InitKinect()
-    {
-        kinect = Device.Open(0);
-        kinect.StartCameras(new DeviceConfiguration
-        {
-            ColorFormat = ImageFormat.ColorBGRA32,
-            ColorResolution = ColorResolution.R720p,
-            DepthMode = DepthMode.NFOV_2x2Binned,
-            SynchronizedImagesOnly = true,
-            CameraFPS = FPS.FPS30,
-        });
-        transformation = kinect.GetCalibration().CreateTransformation();
-    }
-
-    void InitMesh()
-    {
-        depthWidth = kinect.GetCalibration().DepthCameraCalibration.ResolutionWidth;
-        depthHeight = kinect.GetCalibration().DepthCameraCalibration.ResolutionHeight;
-        num = depthWidth * depthHeight;
-
-        mesh = new Mesh();
-        mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
-
-        vertices = new Vector3[num];
-        colors = new Color32[num];
-        Vector2[] uv = new Vector2[num];
-        Vector3[] normals = new Vector3[num];
-        indeces = new int[6 * (depthWidth - 1) * (depthHeight - 1)];
-
-        int index = 0;
-        for (int y = 0; y < depthHeight; y++)
-        {
-            for (int x = 0; x < depthWidth; x++)
+            // Apply the last mesh to the dmeshTempEffect VFX when the robot starts moving
+            if (isRobotMoving && !hasAppliedLastMesh)
             {
-                uv[index] = new Vector2(((float)(x + 0.5f) / (float)(depthWidth)), ((float)(y + 0.5f) / ((float)(depthHeight))));
-                normals[index] = new Vector3(0, -1, 0);
-                index++;
+                dmeshTempEffect.SetMesh("RemoteData", lastMesh);
+                dmeshTempEffect.transform.position = effect.transform.position;
+                dmeshTempEffect.transform.rotation = effect.transform.rotation;
+                hasAppliedLastMesh = true;
+            }
+
+            // Clear the mesh if the robot is moving
+            if (isRobotMoving)
+            {
+                mesh.Clear();
+                effect.SetMesh("RemoteData", emptyMesh);
             }
         }
 
-        mesh.vertices = vertices;
-        mesh.uv = uv;
-        mesh.normals = normals;
-    }
 
-    private async Task KinectLoop(Device device)
-    {
+        void InitKinect()
+        {
+            kinect = Device.Open(0);
+            kinect.StartCameras(new DeviceConfiguration
+            {
+                ColorFormat = ImageFormat.ColorBGRA32,
+                ColorResolution = ColorResolution.R720p,
+                DepthMode = DepthMode.NFOV_2x2Binned,
+                SynchronizedImagesOnly = true,
+                CameraFPS = FPS.FPS30,
+            });
+            transformation = kinect.GetCalibration().CreateTransformation();
+        }
+
+        void InitMesh()
+        {
+            depthWidth = kinect.GetCalibration().DepthCameraCalibration.ResolutionWidth;
+            depthHeight = kinect.GetCalibration().DepthCameraCalibration.ResolutionHeight;
+            num = depthWidth * depthHeight;
+
+            mesh = new Mesh();
+            mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+
+            vertices = new Vector3[num];
+            colors = new Color32[num];
+            Vector2[] uv = new Vector2[num];
+            Vector3[] normals = new Vector3[num];
+            indeces = new int[6 * (depthWidth - 1) * (depthHeight - 1)];
+
+            int index = 0;
+            for (int y = 0; y < depthHeight; y++)
+            {
+                for (int x = 0; x < depthWidth; x++)
+                {
+                    uv[index] = new Vector2(((float)(x + 0.5f) / (float)(depthWidth)), ((float)(y + 0.5f) / ((float)(depthHeight))));
+                    normals[index] = new Vector3(0, -1, 0);
+                    index++;
+                }
+            }
+
+            mesh.vertices = vertices;
+            mesh.uv = uv;
+            mesh.normals = normals;
+        }
+
+        private async Task KinectLoop(Device device)
+        {
 
             ushort[] depthData;
 
@@ -144,45 +199,64 @@ public class meshKinect : MonoBehaviour
                     {
                         for (int x = 0; x < depthWidth; x++)
                         {
-                            vertices[pointIndex].x = PointCloud[pointIndex].X * 0.001f;
-                            vertices[pointIndex].y = -PointCloud[pointIndex].Y * 0.001f;
-                            vertices[pointIndex].z = PointCloud[pointIndex].Z * 0.001f;
+                            float xVal = PointCloud[pointIndex].X * 0.001f;
+                            float yVal = -PointCloud[pointIndex].Y * 0.001f;
+                            float zVal = PointCloud[pointIndex].Z * 0.001f;
 
-                            colors[pointIndex].a = 255;
-                            colors[pointIndex].b = colorArray[pointIndex].B;
-                            colors[pointIndex].g = colorArray[pointIndex].G;
-                            colors[pointIndex].r = colorArray[pointIndex].R;
-
-                            if (x != (depthWidth - 1) && y != (depthHeight - 1))
+                            if (Mathf.Sqrt(xVal * xVal + yVal * yVal + zVal * zVal) <= maxDistance)
                             {
-                                topLeft = pointIndex;
-                                topRight = topLeft + 1;
-                                bottomLeft = topLeft + depthWidth;
-                                bottomRight = bottomLeft + 1;
-                                tl = PointCloud[topLeft].Z;
-                                tr = PointCloud[topRight].Z;
-                                bl = PointCloud[bottomLeft].Z;
-                                br = PointCloud[bottomRight].Z;
+                                vertices[pointIndex].x = xVal;
+                                vertices[pointIndex].y = yVal;
+                                vertices[pointIndex].z = zVal;
 
-                                indeces[triangleIndex++] = topLeft;
-                                indeces[triangleIndex++] = topRight;
-                                indeces[triangleIndex++] = bottomLeft;
+                                colors[pointIndex].a = 255;
+                                colors[pointIndex].b = colorArray[pointIndex].B;
+                                colors[pointIndex].g = colorArray[pointIndex].G;
+                                colors[pointIndex].r = colorArray[pointIndex].R;
 
-                                indeces[triangleIndex++] = bottomLeft;
-                                indeces[triangleIndex++] = topRight;
-                                indeces[triangleIndex++] = bottomRight;
+                                if (x != (depthWidth - 1) && y != (depthHeight - 1))
+                                {
+                                    topLeft = pointIndex;
+                                    topRight = topLeft + 1;
+                                    bottomLeft = topLeft + depthWidth;
+                                    bottomRight = bottomLeft + 1;
+                                    tl = PointCloud[topLeft].Z;
+                                    tr = PointCloud[topRight].Z;
+                                    bl = PointCloud[bottomLeft].Z;
+                                    br = PointCloud[bottomRight].Z;
+
+                                    indeces[triangleIndex++] = topLeft;
+                                    indeces[triangleIndex++] = topRight;
+                                    indeces[triangleIndex++] = bottomLeft;
+
+                                    indeces[triangleIndex++] = bottomLeft;
+                                    indeces[triangleIndex++] = topRight;
+                                    indeces[triangleIndex++] = bottomRight;
+                                }
                             }
+
                             pointIndex++;
                         }
                     }
-                if (!isRobotMoving)
-                {
+
+                    mesh.Clear();
                     mesh.vertices = vertices;
                     mesh.colors32 = colors;
 
                     mesh.triangles = indeces;
                     mesh.RecalculateBounds();
-                    effect.SetMesh("RemoteData", mesh);
+                    if (!isRobotMoving)
+                    {
+
+                        if (fanucHandler.receiving == false)
+                        {
+                            effect.SetMesh("RemoteData", mesh);
+                        }
+                        else
+                        {
+                            effect.SetMesh("RemoteData", emptyMesh);
+                        }
+                    }
                 }
             }
         }

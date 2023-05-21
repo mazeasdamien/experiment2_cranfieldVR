@@ -6,11 +6,12 @@ TagManager:
   tags:
   - collider_robot
   - Pickable
+  - Pressable
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - UImain
   - Water
   - UI
   - FLOOR
