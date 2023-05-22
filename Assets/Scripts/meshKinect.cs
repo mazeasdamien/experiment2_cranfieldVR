@@ -249,18 +249,7 @@ namespace Telexistence
 
                     if (m.CurrentModality == modalities.ModalityType.PointCloud || m.CurrentModality == modalities.ModalityType.PointCloudFeed2D)
                     {
-                        if (!isRobotMoving)
-                        {
-
-                            if (fanucHandler.receiving == false)
-                            {
-                                effect.SetMesh("RemoteData", mesh);
-                            }
-                            else
-                            {
-                                effect.SetMesh("RemoteData", emptyMesh);
-                            }
-                        }
+                        effect.SetMesh("RemoteData", emptyMesh);
                     }
                     else
                     {

@@ -6,7 +6,6 @@ using System.Text;
 using System.Collections;
 using System.Threading;
 using System.IO;
-using System.Diagnostics.Eventing.Reader;
 
 namespace Telexistence
 {
@@ -24,6 +23,8 @@ namespace Telexistence
         public Transform kinect_cursor;
         public Transform worldPosition;
         public List<Transform> robot = new List<Transform>();
+        private Vector3 initialPosition;
+        private Quaternion initialRotation;
 
         // Temporary variables for position and rotation
         private Vector3 tempPos = new();
@@ -50,8 +51,39 @@ namespace Telexistence
             ConnectToServer();
             ReadDataFromServerAsync(_cancellationTokenSource.Token);
 
+            // Save initial position and rotation of the Kinect cursor
+            initialPosition = kinect_cursor.position;
+            initialRotation = kinect_cursor.rotation;
+
             // Start coroutine for sending data
             StartCoroutine(SendDataCoroutine());
+        }
+
+        void Update()
+        {
+            // Check if F10, F11 or F12 is pressed and then send corresponding message
+            if (Input.GetKeyDown(KeyCode.F1))
+            {
+                // Reset the position and rotation of the Kinect cursor
+                kinect_cursor.position = initialPosition;
+                kinect_cursor.rotation = initialRotation;
+                SendMessageToServer("run");
+            }
+            else if (Input.GetKeyDown(KeyCode.F2))
+            {
+                SendMessageToServer("reset");
+            }
+            else if (Input.GetKeyDown(KeyCode.F3))
+            {
+                SendMessageToServer("stop");
+            }
+            else if (Input.GetKeyDown(KeyCode.F4))
+            {
+                // Reset the position and rotation of the Kinect cursor
+                kinect_cursor.position = initialPosition;
+                kinect_cursor.rotation = initialRotation;
+                SendMessageToServer("home");
+            }
         }
 
         // Coroutine to send data to the server

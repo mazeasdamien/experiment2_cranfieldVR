@@ -15,7 +15,6 @@ namespace Telexistence
         private Device kinect;
         private VideoCapture cap_opencv;
         private Dictionary arucoDictionary;
-        private Transformation transformation;
         private DetectorParameters detectorParameters;
         private Mat cameraMatrix = new Mat(3, 3, MatType.CV_32FC1);
         private Mat distCoeffs = new Mat(1, 8, MatType.CV_32FC1);
@@ -24,13 +23,14 @@ namespace Telexistence
         private BGRA[] colorData;
         private Calibration calibration;
         private Mat bgrMat;
+        // Add this at the start of your class to keep track of whether the marker has been instantiated.
+        private bool markerCreated = false;
 
         // Reference to the Kinect sensor GameObject in your Unity scene
         public GameObject kinectGameObject;
         public GameObject markerPrefab;
-        // A dictionary to keep track of the marker GameObjects. The key is the marker id.
-        private Dictionary<int, GameObject> markerObjects = new Dictionary<int, GameObject>();
         public FanucHandler fanucHandler;
+        private GameObject instantiatedMarker = null;
 
         // This is the Mat that will store the snapshot
         public Mat snapshotMat { get; private set; }
@@ -66,27 +66,11 @@ namespace Telexistence
                 CameraFPS = FPS.FPS30,
             });
             calibration = kinect.GetCalibration();
-            transformation = calibration.CreateTransformation();
             InitCameraMatrixAndDistCoeffs(calibration, cameraMatrix, distCoeffs);
         }
 
         private void Update()
         {
-            if (fanucHandler.receiving == true)
-            {
-                foreach (KeyValuePair<int, GameObject> entry in markerObjects)
-                {
-                    entry.Value.SetActive(false);
-                }
-            }
-            else
-            {
-                foreach (KeyValuePair<int, GameObject> entry in markerObjects)
-                {
-                    entry.Value.SetActive(true);
-                }
-            }
-
             using (Capture capture = kinect.GetCapture())
             {
                 Microsoft.Azure.Kinect.Sensor.Image colorImage = capture.Color;
@@ -103,100 +87,76 @@ namespace Telexistence
                     {
                         // Convert BGRA to BGR format
                         Cv2.CvtColor(colourMat, bgrMat, ColorConversionCodes.BGRA2BGR);
+                        // Convert the OpenCV Mat to a Unity Texture2D
+                        Texture2D texture = MatToTexture2D(bgrMat);
+                        // Apply the texture to the outputImage RawImage
+                        outputImage.texture = texture;
 
-                        if (m.CurrentModality == modalities.ModalityType.Markers) {
-
-                        CvAruco.DetectMarkers(bgrMat, arucoDictionary, out var corners, out var ids, detectorParameters, out var rejectedPoints);
-                        CvAruco.DrawDetectedMarkers(bgrMat, corners, ids, Scalar.Green);
-
-                        if (ids.Length > 0)
+                        if (m.CurrentModality == modalities.ModalityType.Markers)
                         {
-                            using (Mat rvecsMat = new Mat())
-                            using (Mat tvecsMat = new Mat())
+
+                            CvAruco.DetectMarkers(bgrMat, arucoDictionary, out var corners, out var ids, detectorParameters, out var rejectedPoints);
+                            CvAruco.DrawDetectedMarkers(bgrMat, corners, ids, Scalar.Green);
+
+                            if (ids.Length > 0)
                             {
-                                CvAruco.EstimatePoseSingleMarkers(corners, markerLength, cameraMatrix, distCoeffs, rvecsMat, tvecsMat);
-
-                                // Keep track of the ids that were detected in this frame
-                                HashSet<int> detectedIds = new HashSet<int>();
-
-                                for (int i = 0; i < ids.Length; i++)
+                                using (Mat rvecsMat = new Mat())
+                                using (Mat tvecsMat = new Mat())
                                 {
-                                    int id = ids[i];
-                                    detectedIds.Add(id);
+                                    CvAruco.EstimatePoseSingleMarkers(corners, markerLength, cameraMatrix, distCoeffs, rvecsMat, tvecsMat);
 
-                                    Vec3d rvec = rvecsMat.Get<Vec3d>(i);
-                                    Vec3d tvec = tvecsMat.Get<Vec3d>(i);
+                                    // Keep track of the ids that were detected in this frame
+                                    HashSet<int> detectedIds = new HashSet<int>();
 
-
-                                    // Convert rotation vector to rotation matrix
-                                    Mat rotationMatrix = new Mat();
-                                    Cv2.Rodrigues(rvec, rotationMatrix);
-
-                                    // Get marker pose in Kinect space
-                                    Vector3 markerPositionInKinectSpace = new Vector3(-(float)tvec[0], (float)tvec[1], (float)tvec[2]); // If Y axis needs to be flipped
-
-                                    // Get the transform from Kinect space to Unity world space
-                                    Matrix4x4 kinectToWorld = kinectGameObject.transform.localToWorldMatrix;
-
-                                    // Transform the marker pose from Kinect space to Unity world space
-                                    Vector3 markerPositionInWorldSpace = kinectToWorld.MultiplyPoint3x4(markerPositionInKinectSpace);
-
-                                    DrawAxis(bgrMat, rvec, tvec, markerLength, cameraMatrix, distCoeffs);
-                                    GameObject markerObject;
-                                    if (!markerObjects.TryGetValue(id, out markerObject))
+                                    for (int i = 0; i < ids.Length; i++)
                                     {
-                                        // If the marker GameObject doesn't exist yet, create it
-                                        markerObject = Instantiate(markerPrefab, markerPositionInWorldSpace, Quaternion.identity);
-                                        markerObjects[id] = markerObject;
-                                    }
-                                    else
-                                    {
-                                        // If the marker GameObject already exists, update its pose
-                                        markerObject.transform.position = markerPositionInWorldSpace;
-                                        markerObject.transform.rotation = Quaternion.identity;
+                                        int id = ids[i];
 
+                                        if (id == 14)  // Instantiate only for marker with ID 14
+                                        {
+                                            detectedIds.Add(id);
+
+                                            Vec3d rvec = rvecsMat.Get<Vec3d>(i);
+                                            Vec3d tvec = tvecsMat.Get<Vec3d>(i);
+
+                                            // Convert rotation vector to rotation matrix
+                                            Mat rotationMatrix = new Mat();
+                                            Cv2.Rodrigues(rvec, rotationMatrix);
+
+                                            // Get marker pose in Kinect space
+                                            Vector3 markerPositionInKinectSpace = new Vector3(-(float)tvec[0], (float)tvec[1], (float)tvec[2]); // If Y axis needs to be flipped
+
+                                            // Get the transform from Kinect space to Unity world space
+                                            Matrix4x4 kinectToWorld = kinectGameObject.transform.localToWorldMatrix;
+
+                                            // Transform the marker pose from Kinect space to Unity world space
+                                            Vector3 markerPositionInWorldSpace = kinectToWorld.MultiplyPoint3x4(markerPositionInKinectSpace);
+
+                                            DrawAxis(bgrMat, rvec, tvec, markerLength, cameraMatrix, distCoeffs);
+                                            // Instantiate the marker only if it hasn't been created yet
+                                            if (!markerCreated)
+                                            {
+                                                instantiatedMarker = Instantiate(markerPrefab, markerPositionInWorldSpace, Quaternion.identity);
+                                                markerCreated = true;  // Set the markerCreated to true, so we know it's been created.
+                                            }
+                                            else
+                                            {
+                                                // If the marker has already been created, just update its position
+                                                instantiatedMarker.transform.position = markerPositionInWorldSpace;
+                                            }
+
+
+                                        }
                                     }
-                                }
-                                // Remove any marker GameObjects that were not detected in this frame
-                                List<int> idsToRemove = new List<int>();
-                                foreach (int id in markerObjects.Keys)
-                                {
-                                    if (!detectedIds.Contains(id))
-                                    {
-                                        idsToRemove.Add(id);
-                                    }
-                                }
-                                foreach (int id in idsToRemove)
-                                {
-                                    GameObject markerObject = markerObjects[id];
-                                    Destroy(markerObject);
-                                    markerObjects.Remove(id);
                                 }
                             }
-
-                        }
-                        else
-                        {
-                            // If no markers were detected, remove all marker GameObjects
-                            foreach (GameObject markerObject in markerObjects.Values)
-                            {
-                                Destroy(markerObject);
-                            }
-                            markerObjects.Clear();
                         }
                     }
-
-                        if (outputImage.texture != null)
-                        {
-                            Destroy(outputImage.texture);
-                        }
-                        outputImage.texture = MatToTexture2D(bgrMat);
-
-                    }
-                    pinnedArray.Free();
                 }
             }
         }
+
+
 
         public void TakeSnapshot()
         {
