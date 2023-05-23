@@ -13,7 +13,7 @@ public class modalities : MonoBehaviour
         Feed2D,
         PointCloud,
         Markers,
-        PointCloudFeed2D
+        Mix
     }
 
     [SerializeField] private ModalityType currentModality;
@@ -24,10 +24,13 @@ public class modalities : MonoBehaviour
         private set { currentModality = value; }
     }
 
+    private void Update()
+    {
+        SetModality(CurrentModality);
+    }
+
     public void SetModality(ModalityType modality)
     {
-        // Deactivate all modalities initially
-        feed2D.SetActive(false);
         usePT = false;
         useMarker = false;
 
@@ -43,12 +46,9 @@ public class modalities : MonoBehaviour
             case ModalityType.Markers:
                 useMarker = true;
                 break;
-            case ModalityType.PointCloudFeed2D:
-                feed2D.SetActive(true);
+            case ModalityType.Mix:
+                useMarker = true;
                 usePT = true;
-                break;
-            default:
-                Debug.LogWarning("Unknown modality: " + modality.ToString());
                 break;
         }
 

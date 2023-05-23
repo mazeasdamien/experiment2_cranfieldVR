@@ -24,20 +24,25 @@ namespace Telexistence
         private Calibration calibration;
         private Mat bgrMat;
         // Add this at the start of your class to keep track of whether the marker has been instantiated.
-        private bool markerCreated = false;
+        private bool markerCreated1 = false;
+        private bool markerCreated2 = false;
 
         // Reference to the Kinect sensor GameObject in your Unity scene
         public GameObject kinectGameObject;
-        public GameObject markerPrefab;
+        public GameObject prefabL;
+        public GameObject prefaBigBox;
         public FanucHandler fanucHandler;
-        private GameObject instantiatedMarker = null;
+        private GameObject instantiatedPrefabL = null;
+        private GameObject instantiatedBigBox = null;
 
         // This is the Mat that will store the snapshot
         public Mat snapshotMat { get; private set; }
 
         // This is the Texture2D that will store the snapshot in a format that can be applied to a RawImage
         public Texture2D snapshotTexture { get; private set; }
-        public modalities m;
+        public RawImage outputSnapshot;
+        public modalities modalities;
+        public LaserPointer laser;
 
         private void Start()
         {
@@ -91,8 +96,12 @@ namespace Telexistence
                         Texture2D texture = MatToTexture2D(bgrMat);
                         // Apply the texture to the outputImage RawImage
                         outputImage.texture = texture;
+                        if (laser.photo ==1)
+                        {
+                            outputSnapshot.texture = texture;
+                        }
 
-                        if (m.CurrentModality == modalities.ModalityType.Markers)
+                        if (modalities.useMarker)
                         {
 
                             CvAruco.DetectMarkers(bgrMat, arucoDictionary, out var corners, out var ids, detectorParameters, out var rejectedPoints);
@@ -134,18 +143,50 @@ namespace Telexistence
 
                                             DrawAxis(bgrMat, rvec, tvec, markerLength, cameraMatrix, distCoeffs);
                                             // Instantiate the marker only if it hasn't been created yet
-                                            if (!markerCreated)
+                                            if (!markerCreated1)
                                             {
-                                                instantiatedMarker = Instantiate(markerPrefab, markerPositionInWorldSpace, Quaternion.identity);
-                                                markerCreated = true;  // Set the markerCreated to true, so we know it's been created.
+                                                instantiatedPrefabL = Instantiate(prefabL, markerPositionInWorldSpace, Quaternion.identity);
+                                                markerCreated1 = true;  // Set the markerCreated to true, so we know it's been created.
                                             }
                                             else
                                             {
                                                 // If the marker has already been created, just update its position
-                                                instantiatedMarker.transform.position = markerPositionInWorldSpace;
+                                                instantiatedPrefabL.transform.position = markerPositionInWorldSpace;
                                             }
+                                        }
+                                        else if (id == 16) // Instantiate only for marker with ID 16
+                                        {
+                                            detectedIds.Add(id);
 
+                                            Vec3d rvec = rvecsMat.Get<Vec3d>(i);
+                                            Vec3d tvec = tvecsMat.Get<Vec3d>(i);
 
+                                            // Convert rotation vector to rotation matrix
+                                            Mat rotationMatrix = new Mat();
+                                            Cv2.Rodrigues(rvec, rotationMatrix);
+
+                                            // Get marker pose in Kinect space
+                                            Vector3 markerPositionInKinectSpace = new Vector3(-(float)tvec[0], (float)tvec[1], (float)tvec[2]);
+
+                                            // Get the transform from Kinect space to Unity world space
+                                            Matrix4x4 kinectToWorld = kinectGameObject.transform.localToWorldMatrix;
+
+                                            // Transform the marker pose from Kinect space to Unity world space
+                                            Vector3 markerPositionInWorldSpace = kinectToWorld.MultiplyPoint3x4(markerPositionInKinectSpace);
+
+                                            DrawAxis(bgrMat, rvec, tvec, markerLength, cameraMatrix, distCoeffs);
+
+                                            // Instantiate the marker only if it hasn't been created yet
+                                            if (!markerCreated2) // Assuming you have marker16Created as a boolean variable
+                                            {
+                                                instantiatedBigBox = Instantiate(prefaBigBox, markerPositionInWorldSpace, Quaternion.identity); // Assuming prefab16 is the new prefab for marker ID 16
+                                                markerCreated2 = true;
+                                            }
+                                            else
+                                            {
+                                                // If the marker has already been created, just update its position
+                                                instantiatedBigBox.transform.position = markerPositionInWorldSpace;
+                                            }
                                         }
                                     }
                                 }
@@ -154,19 +195,6 @@ namespace Telexistence
                     }
                 }
             }
-        }
-
-
-
-        public void TakeSnapshot()
-        {
-            // Create a new Mat to store the snapshot
-            snapshotMat = new Mat();
-            // Copy the current bgrMat into snapshotMat
-            bgrMat.CopyTo(snapshotMat);
-
-            // Create a new Texture2D to store the snapshot
-            snapshotTexture = MatToTexture2D(snapshotMat);
         }
 
         public static void DrawAxis(Mat image, Vec3d rvec, Vec3d tvec, float length, Mat cameraMatrix, Mat distCoeffs)

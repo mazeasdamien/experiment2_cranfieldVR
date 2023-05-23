@@ -6,6 +6,7 @@ using System.Text;
 using System.Collections;
 using System.Threading;
 using System.IO;
+using VarjoExample;
 
 namespace Telexistence
 {
@@ -38,9 +39,14 @@ namespace Telexistence
 
         // Message reachability flag
         public bool messageReachability =true;
+        private bool isYRotationInRange = true;
         public meshKinect meshKinect;
 
         public bool receiving;
+
+        private bool isRunning = true;
+
+        public Controller controller;
 
         void Start()
         {
@@ -73,7 +79,7 @@ namespace Telexistence
             {
                 SendMessageToServer("reset");
             }
-            else if (Input.GetKeyDown(KeyCode.F3))
+            else if (Input.GetKeyDown(KeyCode.F3) || controller.gripButton)
             {
                 SendMessageToServer("stop");
             }
@@ -89,7 +95,7 @@ namespace Telexistence
         // Coroutine to send data to the server
         IEnumerator SendDataCoroutine()
         {
-            while (true)
+            while (isRunning)
             {
                 // Check if the local position or rotation of the cursor has changed
                 if (kinect_cursor.localPosition != tempPos || kinect_cursor.localEulerAngles != tempRot)
@@ -98,27 +104,40 @@ namespace Telexistence
                     tempPos = kinect_cursor.localPosition;
                     tempRot = kinect_cursor.localEulerAngles;
 
-                    // Convert rotation to Fanuc WPR representation
-                    Vector3 wpr = CreateFanucWPRFromQuaternion(kinect_cursor.localRotation);
+                    float yRotation = kinect_cursor.localRotation.eulerAngles.y;
 
-                    // Check if none of the WPR components are NaN
-                    if (!float.IsNaN(wpr.x) && !float.IsNaN(wpr.y) && !float.IsNaN(wpr.z))
+                    // Check if yRotation is within the desired range
+                    if (yRotation >= 5 && yRotation <= 70)
                     {
-                        // Create the message to send
-                        string message = $"{-tempPos.x * 1000},{tempPos.y * 1000},{tempPos.z * 1000},{wpr.x},{wpr.y},{wpr.z}";
+                        isYRotationInRange = true; // Update bool
 
-                        // Send the message if it's different from the previous one
-                        if (previousMessage == null || previousMessage != message)
+                        // Convert rotation to Fanuc WPR representation
+                        Vector3 wpr = CreateFanucWPRFromQuaternion(kinect_cursor.localRotation);
+
+                        // Check if none of the WPR components are NaN
+                        if (!float.IsNaN(wpr.x) && !float.IsNaN(wpr.y) && !float.IsNaN(wpr.z))
                         {
-                            SendMessageToServer(message);
-                            previousMessage = message;
+                            // Create the message to send
+                            string message = $"{-tempPos.x * 1000},{tempPos.y * 1000},{tempPos.z * 1000},{wpr.x},{wpr.y},{wpr.z}";
+
+                            // Send the message if it's different from the previous one
+                            if (previousMessage == null || previousMessage != message)
+                            {
+                                SendMessageToServer(message);
+                                previousMessage = message;
+                            }
                         }
+                    }
+                    else
+                    {
+                        isYRotationInRange = false; // Update bool
                     }
                 }
 
                 // Wait for a fixed time interval before sending the next update
-                yield return new WaitForSeconds(1f / 5f);
+                yield return new WaitForSeconds(0.1f);
             }
+
         }
 
         // Function to send a message to the server
@@ -221,8 +240,15 @@ namespace Telexistence
                             // Handle message with reachability information
                             else if (values.Length == 1)
                             {
-                                bool.TryParse(values[0], out messageReachability);
-                                //Debug.Log("Message Reachability: " + messageReachability);
+                                if (isYRotationInRange)
+                                {
+                                    bool.TryParse(values[0], out messageReachability);
+                                    //Debug.Log("Message Reachability: " + messageReachability);
+                                }
+                                else
+                                {
+                                    messageReachability = false;
+                                }
                             }
                             else
                             {
@@ -334,6 +360,8 @@ namespace Telexistence
         // Function to clean up resources when disposing
         private void Dispose()
         {
+            isRunning = false;
+
             if (_cancellationTokenSource != null)
             {
                 _cancellationTokenSource.Cancel();

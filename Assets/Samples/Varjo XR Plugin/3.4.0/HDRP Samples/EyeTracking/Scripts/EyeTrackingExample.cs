@@ -96,6 +96,14 @@ public class EyeTrackingExample : MonoBehaviour
     int gazeDataCount = 0;
     float gazeTimer = 0f;
 
+    // Add a Dictionary to store the gaze time for each tagged object
+    private Dictionary<string, float> gazeTimes = new Dictionary<string, float>() {
+    {"Robot", 0f},
+    {"Tablet", 0f},
+    {"InstructionPanel", 0f},
+    {"3DScene", 0f}
+};
+
     void GetDevice()
     {
         InputDevices.GetDevicesAtXRNode(XRNode.CenterEye, devices);
@@ -283,6 +291,17 @@ public class EyeTrackingExample : MonoBehaviour
             {
                 AddForceAtHitPosition();
             }
+
+            // Add this in the Update() function where the raycast hits an object
+            if (Physics.SphereCast(rayOrigin, gazeRadius, direction, out hit))
+            {
+                // If the hit object has a tag we're tracking, increment its gaze time
+                if (gazeTimes.ContainsKey(hit.transform.tag))
+                {
+                    gazeTimes[hit.transform.tag] += Time.deltaTime;
+                }
+                // rest of your code...
+            }
         }
         else
         {
@@ -433,5 +452,16 @@ public class EyeTrackingExample : MonoBehaviour
     void OnApplicationQuit()
     {
         StopLogging();
+    }
+
+
+    // At the end of the game or when needed, you can access the gazeTimes to get the time spent gazing at each object
+    public float GetGazeTime(string tag)
+    {
+        if (gazeTimes.ContainsKey(tag))
+        {
+            return gazeTimes[tag];
+        }
+        return 0f; // return 0 if the tag is not being tracked
     }
 }

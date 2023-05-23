@@ -247,9 +247,9 @@ namespace Telexistence
                     mesh.triangles = indeces;
                     mesh.RecalculateBounds();
 
-                    if (m.CurrentModality == modalities.ModalityType.PointCloud || m.CurrentModality == modalities.ModalityType.PointCloudFeed2D)
+                    if (m.usePT == true)
                     {
-                        effect.SetMesh("RemoteData", emptyMesh);
+                        effect.SetMesh("RemoteData", mesh);
                     }
                     else
                     {
