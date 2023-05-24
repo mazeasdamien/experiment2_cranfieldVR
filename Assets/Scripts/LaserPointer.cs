@@ -1,8 +1,9 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 using VarjoExample;
 using Telexistence;
+using System.Collections.Generic;
 
 public class LaserPointer : MonoBehaviour
 {
@@ -10,10 +11,11 @@ public class LaserPointer : MonoBehaviour
     private LineRenderer lineRenderer;
 
     public Material originalMaterial;
-    public GameObject btn_photo;
+    public List<Button> btn = new List<Button>();
+    public Button btn_NEXT;
     public Controller controller;
-    private bool isActionExecuted = false;
-    public int photo;
+    public TLXQuestionnaire tLX;
+    private bool hasTriggeredNextQuestion = false;
 
 
     void Start()
@@ -24,43 +26,80 @@ public class LaserPointer : MonoBehaviour
 
     void Update()
     {
-        RaycastHit hit;
-
-        // The boolean returned by Physics.Raycast indicates whether the raycast hit anything
-        bool didHit = Physics.Raycast(transform.position, transform.forward, out hit, maxDistance);
+        // Always draw the laser as far as maxDistance by default.
+        lineRenderer.SetPosition(0, transform.position);
+        lineRenderer.SetPosition(1, transform.position + transform.forward * maxDistance);
 
         if (controller.primary2DAxisTouch)
         {
-            lineRenderer.SetPosition(0, transform.position);
-            lineRenderer.SetPosition(1, transform.position + transform.forward * maxDistance);
+            // Regular physics raycast
+            RaycastHit hit;
+            bool didHit = Physics.Raycast(transform.position, transform.forward, out hit, maxDistance);
 
-            // Check if the raycast hit something and if the hit object has the right tag
             if (didHit && hit.collider.gameObject.CompareTag("btn_photo"))
             {
-                lineRenderer.SetPosition(0, transform.position);
+                // If the raycast hit the photo button, set the end of the laser to the point where the raycast hit and change the button's color.
                 lineRenderer.SetPosition(1, hit.point);
-                btn_photo.GetComponent<Renderer>().material.color = Color.yellow;
 
-                if (controller.primary2DAxisClick && !isActionExecuted)
-                {
-                    photo = 1;
-                    isActionExecuted = true;
-                }
+                Button button = hit.collider.gameObject.GetComponent<Button>();
+                ColorBlock colorBlock = button.colors;
+                colorBlock.normalColor = new Color(0,190,255);
+                button.colors = colorBlock;
 
-                if (!controller.primary2DAxisClick)
+                if (controller.primary2DAxisClick)
                 {
-                    photo = -1;
-                    isActionExecuted = false;
+                    if (didHit && hit.collider.gameObject.CompareTag("btn_photo") && hit.collider.gameObject.name == "NEXT")
+                    {
+                        // Only trigger the NextQuestion() method if it hasn't been triggered before
+                        if (!hasTriggeredNextQuestion)
+                        {
+                            tLX.NextQuestion();
+                            hasTriggeredNextQuestion = true;
+                        }
+                    }
+
+                    // Before setting the current button's isclicked property to true,
+                    // check the other buttons and set their isclicked property to false if necessary.
+                    foreach (Button otherButton in btn)
+                    {
+                        ButtonCustom otherButtonCustom = otherButton.gameObject.GetComponent<ButtonCustom>();
+                        if (otherButtonCustom != null && otherButtonCustom.isclicked)
+                        {
+                            otherButtonCustom.isclicked = false;
+
+                            // Also reset the color of the other button.
+                            ColorBlock otherButtonColors = otherButton.colors;
+                            otherButtonColors.normalColor = Color.white;
+                            otherButton.colors = otherButtonColors;
+                        }
+                    }
+
+                    // Now it's safe to set the current button's isclicked property to true.
+                    ButtonCustom buttonCustom = button.gameObject.GetComponent<ButtonCustom>();
+                    if (buttonCustom != null)
+                    {
+                        buttonCustom.isclicked = true;
+                        hasTriggeredNextQuestion = false;
+                        // Change the color of the button to blue.
+                        ColorBlock buttonColors = button.colors;
+                        buttonColors.normalColor = Color.white;
+                        button.colors = buttonColors;
+                    }
                 }
             }
-            else if (btn_photo != null)
+            else if (btn.Count >= 1)
             {
-                Renderer renderer = btn_photo.GetComponent<Renderer>();
-                if (renderer != null)
+                foreach (Button b in btn)
                 {
-                    renderer.material = originalMaterial;
+                    if (b.gameObject.GetComponent<ButtonCustom>().isclicked == false)
+                    {
+                        ColorBlock colorBlock = b.colors;
+                        colorBlock.normalColor = Color.white;
+                        b.colors = colorBlock;
+                    }
                 }
             }
+
         }
         else
         {

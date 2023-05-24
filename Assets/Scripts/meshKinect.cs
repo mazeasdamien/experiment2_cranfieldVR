@@ -37,6 +37,10 @@ namespace Telexistence
         public Mesh lastMesh;
         public modalities m;
 
+        private BGRA[] colorArray;
+        private Short3[] pointCloud;
+        private ushort[] depthData;
+
         private void OnDestroy()
         {
             if (mesh != null)
@@ -48,7 +52,15 @@ namespace Telexistence
                 Destroy(emptyMesh);
             }
             kinect.StopCameras();
+            kinect.Dispose();
         }
+
+        private void OnApplicationQuit()
+        {
+            kinect.StopCameras();
+            kinect.Dispose();
+        }
+
 
         void Start()
         {
@@ -69,8 +81,7 @@ namespace Telexistence
                 lineCreator.lineDistance = 0;
                 if (instantiatedText != null)
                 {
-                    Destroy(instantiatedText);
-                    instantiatedText = null;
+                    instantiatedText.SetActive(false);
                 }
             }
             else
@@ -82,6 +93,11 @@ namespace Telexistence
                 {
                     instantiatedText = Instantiate(textPrefab, transform);
                 }
+                else
+                {
+                    instantiatedText.SetActive(true);
+                }
+
                 // Position the instantiated text in the middle of the line
                 instantiatedText.transform.position = lineCreator.originObject.transform.position + lineCreator.originObject.transform.TransformDirection(0, lineCreator.lineDistance / 2, 0);
 
@@ -102,7 +118,11 @@ namespace Telexistence
             // Save the last mesh before the robot starts moving
             if (!isRobotMoving && fanucHandler.receiving)
             {
-                lastMesh = mesh;
+                if (lastMesh != null)
+                {
+                    Destroy(lastMesh);
+                }
+                lastMesh = Instantiate(mesh);
                 hasAppliedLastMesh = false;
             }
 
@@ -171,25 +191,28 @@ namespace Telexistence
 
         private async Task KinectLoop(Device device)
         {
-
-            ushort[] depthData;
-
             while (true)
             {
                 using (Capture capture = await Task.Run(() => device.GetCapture()).ConfigureAwait(true))
                 {
-                    Microsoft.Azure.Kinect.Sensor.Image modifiedColor = transformation.ColorImageToDepthCamera(capture);
-                    BGRA[] colorArray = modifiedColor.GetPixels<BGRA>().ToArray();
-
-                    Microsoft.Azure.Kinect.Sensor.Image cloudImage = transformation.DepthImageToPointCloud(capture.Depth);
-                    Short3[] PointCloud = cloudImage.GetPixels<Short3>().ToArray();
-                    Microsoft.Azure.Kinect.Sensor.Image depthImage = capture.Depth;
-
-                    if (depthImage != null)
+                    using (Microsoft.Azure.Kinect.Sensor.Image modifiedColor = transformation.ColorImageToDepthCamera(capture))
                     {
-                        int centerIndex = (depthImage.WidthPixels / 2) + (depthImage.HeightPixels / 2) * depthImage.WidthPixels;
-                        depthData = depthImage.GetPixels<ushort>().ToArray();
-                        midDepth = depthData[centerIndex];
+                        colorArray = modifiedColor.GetPixels<BGRA>().ToArray();
+
+                        using (Microsoft.Azure.Kinect.Sensor.Image cloudImage = transformation.DepthImageToPointCloud(capture.Depth))
+                        {
+                            pointCloud = cloudImage.GetPixels<Short3>().ToArray();
+
+                            using (Microsoft.Azure.Kinect.Sensor.Image depthImage = capture.Depth)
+                            {
+                                if (depthImage != null)
+                                {
+                                    int centerIndex = (depthImage.WidthPixels / 2) + (depthImage.HeightPixels / 2) * depthImage.WidthPixels;
+                                    depthData = depthImage.GetPixels<ushort>().ToArray();
+                                    midDepth = depthData[centerIndex];
+                                }
+                            }
+                        }
                     }
 
                     int triangleIndex = 0;
@@ -200,9 +223,9 @@ namespace Telexistence
                     {
                         for (int x = 0; x < depthWidth; x++)
                         {
-                            float xVal = PointCloud[pointIndex].X * 0.001f;
-                            float yVal = -PointCloud[pointIndex].Y * 0.001f;
-                            float zVal = PointCloud[pointIndex].Z * 0.001f;
+                            float xVal = pointCloud[pointIndex].X * 0.001f;
+                            float yVal = -pointCloud[pointIndex].Y * 0.001f;
+                            float zVal = pointCloud[pointIndex].Z * 0.001f;
 
                             if (Mathf.Sqrt(xVal * xVal + yVal * yVal + zVal * zVal) <= maxDistance)
                             {
@@ -221,10 +244,10 @@ namespace Telexistence
                                     topRight = topLeft + 1;
                                     bottomLeft = topLeft + depthWidth;
                                     bottomRight = bottomLeft + 1;
-                                    tl = PointCloud[topLeft].Z;
-                                    tr = PointCloud[topRight].Z;
-                                    bl = PointCloud[bottomLeft].Z;
-                                    br = PointCloud[bottomRight].Z;
+                                    tl = pointCloud[topLeft].Z;
+                                    tr = pointCloud[topRight].Z;
+                                    bl = pointCloud[bottomLeft].Z;
+                                    br = pointCloud[bottomRight].Z;
 
                                     indeces[triangleIndex++] = topLeft;
                                     indeces[triangleIndex++] = topRight;
