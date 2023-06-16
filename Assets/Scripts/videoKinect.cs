@@ -96,8 +96,10 @@ namespace Telexistence
                         Texture2D texture = MatToTexture2D(bgrMat);
                         // Apply the texture to the outputImage RawImage
                         outputImage.texture = texture;
-                        outputSnapshot.texture = texture;
-
+                        if (outputSnapshot != null)
+                        {
+                            outputSnapshot.texture = texture;
+                        }
                         // Cleanup
                         pinnedArray.Free();
 

@@ -19,7 +19,7 @@ public class TLXData
 public class TLXQuestionnaire : MonoBehaviour
 {
     public TextMeshProUGUI questionText;
-    public GameObject buttonContainer; // make sure to assign this in the editor
+    public GameObject buttonContainer;
 
     private List<QuestionData> questions;
     private int currentQuestionIndex;
@@ -49,8 +49,6 @@ public class TLXQuestionnaire : MonoBehaviour
 
         QuestionData questionData = questions[questionIndex];
         questionText.text = questionData.question;
-
-        // Assume that you've already set up buttons for each of the possible responses in the buttonContainer
     }
 
     public void NextQuestion()
@@ -63,7 +61,6 @@ public class TLXQuestionnaire : MonoBehaviour
         else
         {
             Debug.Log("Questionnaire completed!");
-            // Implement your questionnaire completion logic here.
         }
     }
 }

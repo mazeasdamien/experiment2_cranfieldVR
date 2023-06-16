@@ -79,7 +79,7 @@ namespace Telexistence
             {
                 SendMessageToServer("reset");
             }
-            else if (Input.GetKeyDown(KeyCode.F3) || controller.gripButton)
+            else if (Input.GetKeyDown(KeyCode.F3))
             {
                 SendMessageToServer("stop");
             }
@@ -97,6 +97,7 @@ namespace Telexistence
         {
             while (isRunning)
             {
+
                 // Check if the local position or rotation of the cursor has changed
                 if (kinect_cursor.localPosition != tempPos || kinect_cursor.localEulerAngles != tempRot)
                 {
