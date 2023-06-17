@@ -51,8 +51,6 @@ namespace Telexistence
             {
                 Destroy(emptyMesh);
             }
-            kinect.StopCameras();
-            kinect.Dispose();
         }
 
         private void OnApplicationQuit()
