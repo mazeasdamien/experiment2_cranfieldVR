@@ -29,8 +29,9 @@ public class pathUpdater : MonoBehaviour
 
     void Start()
     {
-        TextAsset jsonText = Resources.Load<TextAsset>("RobotData");
-        PositionData positionData = JsonUtility.FromJson<PositionData>(jsonText.text);
+        string path = Path.Combine(Application.streamingAssetsPath, "RobotData.json");
+        string jsonString = File.ReadAllText(path);
+        PositionData positionData = JsonUtility.FromJson<PositionData>(jsonString);
 
         // Initialize the number of points
         lineRenderer.positionCount = positionData.positions.Count;
@@ -46,8 +47,9 @@ public class pathUpdater : MonoBehaviour
 
     void Update()
     {
-        TextAsset jsonText = Resources.Load<TextAsset>("RobotData");
-        PositionData positionData = JsonUtility.FromJson<PositionData>(jsonText.text);
+        string path = Path.Combine(Application.streamingAssetsPath, "RobotData.json");
+        string jsonString = File.ReadAllText(path);
+        PositionData positionData = JsonUtility.FromJson<PositionData>(jsonString);
 
         if (Input.GetKeyDown(KeyCode.PageUp))
         {

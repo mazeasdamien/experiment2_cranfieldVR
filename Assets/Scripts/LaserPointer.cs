@@ -11,21 +11,61 @@ public class LaserPointer : MonoBehaviour
     private LineRenderer lineRenderer;
 
     public Material originalMaterial;
-    public List<Button> btn = new List<Button>();
     public Button btn_NEXT;
+    public Button btn_PLUS;
+    public Button btn_MINUS;
+    public Slider slider;
     public Controller controller;
     public TLXQuestionnaire tLX;
     private bool hasTriggeredNextQuestion = false;
+    private bool nextButtonCooldown = false; // Flag to indicate if the "Next" button is on cooldown
+    public float nextButtonCooldownDuration = 6.0f; // Duration of the cooldown period in seconds
+    private float nextButtonCooldownTimer = 0f; // Timer to track the cooldown period
 
+    private ColorBlock initialButtonColors; // Store the initial colors of the button
+    private bool lastFramePrimary2DAxisClick = false;
 
     void Start()
     {
         lineRenderer = GetComponent<LineRenderer>();
         lineRenderer.positionCount = 2;
+
+        // Store the initial colors of the button
+        initialButtonColors = btn_NEXT.colors;
     }
 
     void Update()
     {
+        // Check if primary 2D axis has been clicked this frame
+        bool thisFramePrimary2DAxisClick = controller.primary2DAxisClick;
+
+        // Calculate flags for the start and end of a click
+        bool clickStartedThisFrame = thisFramePrimary2DAxisClick && !lastFramePrimary2DAxisClick;
+        bool clickEndedThisFrame = !thisFramePrimary2DAxisClick && lastFramePrimary2DAxisClick;
+
+        // Check if the "Next" button is on cooldown
+        if (nextButtonCooldown)
+        {
+            // Update the cooldown timer
+            nextButtonCooldownTimer += Time.deltaTime;
+
+            // Check if the cooldown period has ended
+            if (nextButtonCooldownTimer >= nextButtonCooldownDuration)
+            {
+                // Reset the cooldown flag and timer
+                nextButtonCooldown = false;
+                nextButtonCooldownTimer = 0f;
+
+                // Enable the "Next" button after the cooldown period
+                btn_NEXT.interactable = true;
+            }
+            else
+            {
+                // Disable the "Next" button during the cooldown period
+                btn_NEXT.interactable = false;
+            }
+        }
+
         // Always draw the laser as far as maxDistance by default.
         lineRenderer.SetPosition(0, transform.position);
         lineRenderer.SetPosition(1, transform.position + transform.forward * maxDistance);
@@ -42,69 +82,74 @@ public class LaserPointer : MonoBehaviour
                 lineRenderer.SetPosition(1, hit.point);
 
                 Button button = hit.collider.gameObject.GetComponent<Button>();
-                ColorBlock colorBlock = button.colors;
-                colorBlock.normalColor = new Color(0,190,255);
-                button.colors = colorBlock;
-
-                if (controller.primary2DAxisClick)
+                if (button != null)
                 {
-                    if (didHit && hit.collider.gameObject.CompareTag("btn_photo") && hit.collider.gameObject.name == "NEXT")
+                    ColorBlock colorBlock = button.colors;
+                    colorBlock.normalColor = Color.green; // Change the color to green
+                    button.colors = colorBlock;
+                }
+
+                if (clickStartedThisFrame)
+                {
+                    if (hit.collider.gameObject.name == "NEXT")
                     {
-                        // Only trigger the NextQuestion() method if it hasn't been triggered before
-                        if (!hasTriggeredNextQuestion)
+                        if (!hasTriggeredNextQuestion && !nextButtonCooldown)
                         {
                             tLX.NextQuestion();
                             hasTriggeredNextQuestion = true;
+                            nextButtonCooldown = true;
                         }
                     }
-
-                    // Before setting the current button's isclicked property to true,
-                    // check the other buttons and set their isclicked property to false if necessary.
-                    foreach (Button otherButton in btn)
+                    else if (hit.collider.gameObject.name == "PLUS")
                     {
-                        ButtonCustom otherButtonCustom = otherButton.gameObject.GetComponent<ButtonCustom>();
-                        if (otherButtonCustom != null && otherButtonCustom.isclicked)
-                        {
-                            otherButtonCustom.isclicked = false;
-
-                            // Also reset the color of the other button.
-                            ColorBlock otherButtonColors = otherButton.colors;
-                            otherButtonColors.normalColor = Color.white;
-                            otherButton.colors = otherButtonColors;
-                        }
+                        // Increase the slider's value when the "PLUS" button is pressed, but do not exceed the maximum value
+                        slider.value = Mathf.Min(slider.value + 1f, slider.maxValue);
+                    }
+                    else if (hit.collider.gameObject.name == "MINUS")
+                    {
+                        // Decrease the slider's value when the "MINUS" button is pressed, but do not go below the minimum value
+                        slider.value = Mathf.Max(slider.value - 1f, slider.minValue);
                     }
 
-                    // Now it's safe to set the current button's isclicked property to true.
                     ButtonCustom buttonCustom = button.gameObject.GetComponent<ButtonCustom>();
                     if (buttonCustom != null)
                     {
                         buttonCustom.isclicked = true;
                         hasTriggeredNextQuestion = false;
-                        // Change the color of the button to blue.
                         ColorBlock buttonColors = button.colors;
                         buttonColors.normalColor = Color.white;
                         button.colors = buttonColors;
                     }
                 }
             }
-            else if (btn.Count >= 1)
+            else
             {
-                foreach (Button b in btn)
-                {
-                    if (b.gameObject.GetComponent<ButtonCustom>().isclicked == false)
-                    {
-                        ColorBlock colorBlock = b.colors;
-                        colorBlock.normalColor = Color.white;
-                        b.colors = colorBlock;
-                    }
-                }
+                ResetButtonColor(btn_NEXT);
+                ResetButtonColor(btn_PLUS);
+                ResetButtonColor(btn_MINUS);
             }
-
         }
         else
         {
+            ResetButtonColor(btn_NEXT);
+            ResetButtonColor(btn_PLUS);
+            ResetButtonColor(btn_MINUS);
+
             lineRenderer.SetPosition(0, transform.position);
             lineRenderer.SetPosition(1, transform.position);
+        }
+
+        // Store the current primary 2D axis click state for the next frame
+        lastFramePrimary2DAxisClick = thisFramePrimary2DAxisClick;
+    }
+
+    void ResetButtonColor(Button button)
+    {
+        if (button != null)
+        {
+            ColorBlock buttonColors = button.colors;
+            buttonColors.normalColor = initialButtonColors.normalColor;
+            button.colors = buttonColors;
         }
     }
 }

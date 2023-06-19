@@ -330,11 +330,29 @@ namespace Telexistence
             if (kinect != null)
             {
                 kinect.StopCameras();
+                kinect = null;
             }
-            cap_opencv.Dispose();
-            cameraMatrix.Dispose();
-            distCoeffs.Dispose();
-            bgrMat.Dispose();
+            if (cap_opencv != null)
+            {
+                cap_opencv.Dispose();
+                cap_opencv = null;
+            }
+            if (cameraMatrix != null)
+            {
+                cameraMatrix.Dispose();
+                cameraMatrix = null;
+            }
+            if (distCoeffs != null)
+            {
+                distCoeffs.Dispose();
+                distCoeffs = null;
+            }
+            if (bgrMat != null)
+            {
+                bgrMat.Dispose();
+                bgrMat = null;
+            }
         }
+
     }
 }
