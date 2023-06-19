@@ -327,7 +327,10 @@ namespace Telexistence
 
         private void OnDestroy()
         {
-            kinect.StopCameras();
+            if (kinect != null)
+            {
+                kinect.StopCameras();
+            }
             cap_opencv.Dispose();
             cameraMatrix.Dispose();
             distCoeffs.Dispose();

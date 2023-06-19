@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 561.6661, g: 498.8062, b: 494.75977, a: 1}
+  m_IndirectSpecularColor: {r: 567.8525, g: 498.1958, b: 480.8291, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -13353,7 +13353,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 252474843}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.647, y: 1.1850004, z: -1.0000002}
+  m_LocalPosition: {x: -0.687, y: 1.1850004, z: -1.0000002}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -75847,7 +75847,7 @@ MonoBehaviour:
   lineRenderer: {fileID: 1515243347}
   prefab: {fileID: 1429955143718279996, guid: 55aa493218c9b694aae64f768951d669, type: 3}
   robot_controller: {fileID: 8664993216534856312}
-  robotSpeed: 1
+  robotSpeed: 0.5
   pause: 1
 --- !u!1 &1515955603
 GameObject:
@@ -104406,7 +104406,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2048849157}
   m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: -1.5, y: 1.569, z: 0.165}
+  m_LocalPosition: {x: -1.424, y: 1.456, z: 0.165}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
