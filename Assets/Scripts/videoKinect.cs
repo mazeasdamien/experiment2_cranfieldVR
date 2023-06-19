@@ -23,30 +23,22 @@ namespace Telexistence
         private BGRA[] colorData;
         private Calibration calibration;
         private Mat bgrMat;
-        // Add this at the start of your class to keep track of whether the marker has been instantiated.
+        private Texture2D texture;
         private bool markerCreated1 = false;
         private bool markerCreated2 = false;
-
-        // Reference to the Kinect sensor GameObject in your Unity scene
         public GameObject kinectGameObject;
         public GameObject prefabL;
         public GameObject prefaBigBox;
         public FanucHandler fanucHandler;
         private GameObject instantiatedPrefabL = null;
         private GameObject instantiatedBigBox = null;
-
-        // This is the Mat that will store the snapshot
-        public Mat snapshotMat { get; private set; }
-
-        // This is the Texture2D that will store the snapshot in a format that can be applied to a RawImage
-        public Texture2D snapshotTexture { get; private set; }
         public RawImage outputSnapshot;
         public modalities modalities;
         public LaserPointer laser;
 
         private void Start()
         {
-            // Initialize video capture and face detection
+            // Initialize video capture
             cap_opencv = new VideoCapture();
             cap_opencv.Open(1, VideoCaptureAPIs.ANY);
 
@@ -82,6 +74,12 @@ namespace Telexistence
 
                 if (colorImage != null && colorImage.WidthPixels > 0 && colorImage.HeightPixels > 0)
                 {
+                    // Create the texture if it's not already created
+                    if (texture == null)
+                    {
+                        texture = new Texture2D(colorImage.WidthPixels, colorImage.HeightPixels, TextureFormat.RGB24, false);
+                    }
+
                     // Update colorData with the latest pixel data
                     colorData = colorImage.GetPixels<BGRA>().ToArray();
 
@@ -92,8 +90,7 @@ namespace Telexistence
                     {
                         // Convert BGRA to BGR format
                         Cv2.CvtColor(colourMat, bgrMat, ColorConversionCodes.BGRA2BGR);
-                        // Convert the OpenCV Mat to a Unity Texture2D
-                        Texture2D texture = MatToTexture2D(bgrMat);
+                        UpdateTexture(bgrMat, texture);
                         // Apply the texture to the outputImage RawImage
                         outputImage.texture = texture;
                         if (outputSnapshot != null)
@@ -286,6 +283,46 @@ namespace Telexistence
             texture.Apply();
 
             return texture;
+        }
+
+        private void UpdateTexture(Mat mat, Texture2D texture)
+        {
+            int width = mat.Width;
+            int height = mat.Height;
+            int channels = mat.Channels();
+
+            // Convert the Mat's data to a byte array
+            byte[] data = new byte[width * height * mat.ElemSize()];
+            Marshal.Copy(mat.Data, data, 0, data.Length);
+
+            if (channels == 4)
+            {
+                // Swap the red and blue channels
+                for (int i = 0; i < data.Length; i += 4)
+                {
+                    byte temp = data[i];
+                    data[i] = data[i + 2];
+                    data[i + 2] = temp;
+                }
+            }
+            else if (channels == 3)
+            {
+                // Swap the red and blue channels
+                for (int i = 0; i < data.Length; i += 3)
+                {
+                    byte temp = data[i];
+                    data[i] = data[i + 2];
+                    data[i + 2] = temp;
+                }
+            }
+            else
+            {
+                throw new ArgumentException("Input Mat must have 3 or 4 channels.");
+            }
+
+            // Load the byte array into the texture
+            texture.LoadRawTextureData(data);
+            texture.Apply();
         }
 
         private void OnDestroy()

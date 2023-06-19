@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 567.826, g: 498.17664, b: 480.81323, a: 1}
+  m_IndirectSpecularColor: {r: 567.826, g: 498.17664, b: 480.8169, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -114061,8 +114061,8 @@ BoxCollider:
   m_IsTrigger: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 0.045181934, y: 0.109092966, z: 0.12680173}
-  m_Center: {x: -0.00017077434, y: -0.0008499364, z: 0.060018476}
+  m_Size: {x: 0.061595403, y: 0.1239981, z: 0.12680173}
+  m_Center: {x: -0.00029042363, y: -0.00273493, z: 0.060018487}
 --- !u!114 &8664993216534856318
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -114092,8 +114092,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   point1: {fileID: 704367271}
   point2: {fileID: 1563607137}
-  rotationLimitsMin: {x: -60, y: -145, z: -30}
-  rotationLimitsMax: {x: 60, y: -92, z: 30}
 --- !u!1 &8806701745466260396
 GameObject:
   m_ObjectHideFlags: 0
