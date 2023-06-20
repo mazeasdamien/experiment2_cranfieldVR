@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 567.8525, g: 498.1958, b: 480.8291, a: 1}
+  m_IndirectSpecularColor: {r: 567.826, g: 498.17664, b: 480.81787, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -36025,7 +36025,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 701209054}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1a36720eef37e0f42abf55295a6c68a7, type: 3}
   m_Name: 
@@ -36033,7 +36033,17 @@ MonoBehaviour:
   feed2D: {fileID: 2120266794}
   usePT: 0
   useMarker: 0
+  trial: {fileID: 0}
+  m1: {fileID: 0}
+  m2: {fileID: 0}
+  m3: {fileID: 0}
+  m4: {fileID: 0}
   currentModality: 1
+  currentModel: 0
+  currentTask: 0
+  task1Objects: []
+  task2Objects: []
+  task3Objects: []
 --- !u!114 &701209061
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -54235,7 +54245,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1060788866}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1215439004}
+        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
+        m_MethodName: SetActive
+        m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1060788866
 MonoBehaviour:
   m_ObjectHideFlags: 0

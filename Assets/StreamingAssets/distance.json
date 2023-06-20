@@ -1,0 +1,89 @@
+{
+  "modalities": [
+    {
+      "name": "TRIAL",
+      "tasks": [
+        {
+          "taskName": "t1",
+          "distance": "40 cm"
+        },
+        {
+          "taskName": "t2",
+          "distance": "35 cm"
+        },
+        {
+          "taskName": "t3",
+          "distance": "45 cm"
+        }
+      ]
+    },
+    {
+      "name": "M1",
+      "tasks": [
+        {
+          "taskName": "t1",
+          "distance": "35 cm"
+        },
+        {
+          "taskName": "t2",
+          "distance": "38 cm"
+        },
+        {
+          "taskName": "t3",
+          "distance": "40 cm"
+        }
+      ]
+    },
+    {
+      "name": "M2",
+      "tasks": [
+        {
+          "taskName": "t1",
+          "distance": "35 cm"
+        },
+        {
+          "taskName": "t2",
+          "distance": "42 cm"
+        },
+        {
+          "taskName": "t3",
+          "distance": "48 cm"
+        }
+      ]
+    },
+    {
+      "name": "M3",
+      "tasks": [
+        {
+          "taskName": "t1",
+          "distance": "40 cm"
+        },
+        {
+          "taskName": "t2",
+          "distance": "35 cm"
+        },
+        {
+          "taskName": "t3",
+          "distance": "45 cm"
+        }
+      ]
+    },
+    {
+      "name": "M4",
+      "tasks": [
+        {
+          "taskName": "t1",
+          "distance": "30 cm"
+        },
+        {
+          "taskName": "t2",
+          "distance": "38 cm"
+        },
+        {
+          "taskName": "t3",
+          "distance": "40 cm"
+        }
+      ]
+    }
+  ]
+}

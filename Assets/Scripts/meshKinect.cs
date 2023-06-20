@@ -3,6 +3,7 @@ using Microsoft.Azure.Kinect.Sensor;
 using System.Threading.Tasks;
 using UnityEngine.VFX;
 using TMPro;
+using System.Collections;
 
 namespace Telexistence
 {
@@ -66,7 +67,7 @@ namespace Telexistence
             emptyMesh = new Mesh();
             InitKinect();
             InitMesh();
-            Task t = KinectLoop(kinect);
+            StartCoroutine(KinectLoop(kinect));
         }
 
         void Update()
@@ -187,13 +188,12 @@ namespace Telexistence
             mesh.normals = normals;
         }
 
-        private async Task KinectLoop(Device device)
+        private IEnumerator KinectLoop(Device device)
         {
             while (true)
             {
-                using (Capture capture = await Task.Run(() => device.GetCapture()).ConfigureAwait(true))
-                {
-                    using (Microsoft.Azure.Kinect.Sensor.Image modifiedColor = transformation.ColorImageToDepthCamera(capture))
+                Capture capture = device.GetCapture();
+                using (Microsoft.Azure.Kinect.Sensor.Image modifiedColor = transformation.ColorImageToDepthCamera(capture))
                     {
                         colorArray = modifiedColor.GetPixels<BGRA>().ToArray();
 
@@ -276,7 +276,7 @@ namespace Telexistence
                     {
                         effect.SetMesh("RemoteData", emptyMesh);
                     }
-                }
+                yield return null;
             }
         }
     }

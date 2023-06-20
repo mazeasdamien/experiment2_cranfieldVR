@@ -34,12 +34,15 @@ public class TLXQuestionnaire : MonoBehaviour
     public TextMeshProUGUI left_text;
     public TextMeshProUGUI valueText;
     public Slider slider;
+    public string folderPath;
 
     private List<string> recordedAnswers;
     public GameObject next;
 
     private void Start()
     {
+        string folderPath = Path.Combine(Application.dataPath, $"Participants_data/participant_{participant_ID}");
+        Directory.CreateDirectory(folderPath);
         recordedAnswers = new List<string>();
         LoadQuestions();
         ShowQuestion(0);
@@ -48,6 +51,7 @@ public class TLXQuestionnaire : MonoBehaviour
     private void Update()
     {
         valueText.text = slider.value.ToString();
+        //Debug.Log(folderPath);
     }
 
     private void LoadQuestions()
