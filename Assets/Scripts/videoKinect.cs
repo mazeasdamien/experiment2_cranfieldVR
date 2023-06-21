@@ -73,7 +73,7 @@ namespace Telexistence
                     // Create the texture if it's not already created
                     if (texture == null)
                     {
-                        texture = new Texture2D(colorImage.WidthPixels, colorImage.HeightPixels, TextureFormat.RGB24, false);
+                        texture = new Texture2D(200,200, TextureFormat.RGB24, false);
                     }
 
                     // Update colorData with the latest pixel data
@@ -233,28 +233,47 @@ namespace Telexistence
             int height = mat.Height;
             int channels = mat.Channels();
 
+            // Calculate the start points of the 100x100 area
+            int startX = (width - 200) / 2;
+            int startY = (height - 200) / 2;
+
             // Convert the Mat's data to a byte array
-            byte[] data = new byte[width * height * mat.ElemSize()];
+            byte[] data = new byte[width * height * channels];
             Marshal.Copy(mat.Data, data, 0, data.Length);
+
+            byte[] croppedData = new byte[200 * 200 * channels];
 
             if (channels == 4)
             {
-                // Swap the red and blue channels
-                for (int i = 0; i < data.Length; i += 4)
+                for (int y = 0; y < 200; y++)
                 {
-                    byte temp = data[i];
-                    data[i] = data[i + 2];
-                    data[i + 2] = temp;
+                    for (int x = 0; x < 200; x++)
+                    {
+                        int i = ((startY + y) * width + (startX + x)) * channels;
+                        int j = (y * 200 + x) * channels;
+
+                        // Swap the red and blue channels and copy the pixel data to the cropped array
+                        croppedData[j] = data[i + 2];
+                        croppedData[j + 1] = data[i + 1];
+                        croppedData[j + 2] = data[i];
+                        croppedData[j + 3] = data[i + 3];
+                    }
                 }
             }
             else if (channels == 3)
             {
-                // Swap the red and blue channels
-                for (int i = 0; i < data.Length; i += 3)
+                for (int y = 0; y < 200; y++)
                 {
-                    byte temp = data[i];
-                    data[i] = data[i + 2];
-                    data[i + 2] = temp;
+                    for (int x = 0; x < 200; x++)
+                    {
+                        int i = ((startY + y) * width + (startX + x)) * channels;
+                        int j = (y * 200 + x) * channels;
+
+                        // Swap the red and blue channels and copy the pixel data to the cropped array
+                        croppedData[j] = data[i + 2];
+                        croppedData[j + 1] = data[i + 1];
+                        croppedData[j + 2] = data[i];
+                    }
                 }
             }
             else
@@ -263,9 +282,10 @@ namespace Telexistence
             }
 
             // Load the byte array into the texture
-            texture.LoadRawTextureData(data);
+            texture.LoadRawTextureData(croppedData);
             texture.Apply();
         }
+
 
 
         private void OnDestroy()

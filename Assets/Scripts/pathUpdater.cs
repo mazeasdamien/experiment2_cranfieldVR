@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using Telexistence;
+using UnityEngine.UI;
 
 [System.Serializable]
 public class Position
@@ -28,6 +29,9 @@ public class pathUpdater : MonoBehaviour
     public float robotSpeed = 1f;
     public float pause = 2f;
     private bool isFollowingPath = false;
+    public RawImage feed;
+    public GameObject Canvas;
+    public GameObject RawimageInstance;
 
     void Start()
     {
@@ -84,10 +88,20 @@ public class pathUpdater : MonoBehaviour
     {
         if (!isFollowingPath)
         {
+            // Destroy all RawImageInstance objects
+            foreach (Transform child in Canvas.transform)
+            {
+                if (child.gameObject.CompareTag("RawImageInstance"))
+                {
+                    Destroy(child.gameObject);
+                }
+            }
+
             StopAllCoroutines();
             StartCoroutine(FollowPath());
         }
     }
+
 
     private IEnumerator FollowPath()
     {
@@ -122,6 +136,25 @@ public class pathUpdater : MonoBehaviour
             robot_controller.transform.rotation = targetRot; // use global rotation
 
             yield return new WaitForSeconds(pause);
+
+            // Instantiate RawImageInstance and set its parent to Canvas
+            GameObject rawImageObj = Instantiate(RawimageInstance, Canvas.transform);
+
+            // Set the position of the RawImageInstance to arrange them horizontally
+            RectTransform rectTransform = rawImageObj.GetComponent<RectTransform>();
+            rectTransform.anchoredPosition = new Vector2(100 + gameObjects.IndexOf(target) * 183, -270);
+
+            // Get the RawImage component and apply the snapshot of the feed
+            RawImage rawImage = rawImageObj.GetComponent<RawImage>();
+            Texture2D snapshot = new Texture2D(feed.texture.width, feed.texture.height);
+            RenderTexture.active = feed.texture as RenderTexture;
+
+            // Yield a frame to ensure the RenderTexture is ready
+            yield return new WaitForEndOfFrame();
+
+            snapshot.ReadPixels(new Rect(0, 0, feed.texture.width, feed.texture.height), 0, 0);
+            snapshot.Apply();
+            rawImage.texture = snapshot;
         }
 
         // Return the robot controller to its initial position and rotation
