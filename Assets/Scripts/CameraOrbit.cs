@@ -44,10 +44,6 @@ namespace TDLN.CameraControllers
 
                 if (pos.x < 380 * dpiScale && Screen.height - pos.y < 250 * dpiScale) return;
 
-                // comment out these two lines if you don't want to hide mouse curser or you have a UI button 
-                Cursor.visible = false;
-                Cursor.lockState = CursorLockMode.Locked;
-
                 x += Input.GetAxis("Mouse X") * xSpeed * 0.02f;
                 y -= Input.GetAxis("Mouse Y") * ySpeed * 0.02f;
 
@@ -58,12 +54,17 @@ namespace TDLN.CameraControllers
                 transform.position = position;
 
             }
+            if (Input.GetMouseButton(1))
+            {
+                Cursor.visible = false;
+                Cursor.lockState = CursorLockMode.Locked;
+            }
             else
             {
-                // comment out these two lines if you don't want to hide mouse curser or you have a UI button 
                 Cursor.visible = true;
                 Cursor.lockState = CursorLockMode.None;
             }
+
 
             if (Math.Abs(prevDistance - distance) > 0.001f)
             {
