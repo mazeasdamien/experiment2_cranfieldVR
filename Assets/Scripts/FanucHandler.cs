@@ -7,6 +7,8 @@ using System.Collections;
 using System.Threading;
 using System.IO;
 using VarjoExample;
+using UnityEngine.UI;
+using TMPro;
 
 namespace Telexistence
 {
@@ -46,7 +48,8 @@ namespace Telexistence
 
         private bool isRunning = true;
 
-        public Controller controller;
+        public TMP_InputField inputField;
+        public Button sendButton;
 
         void Start()
         {
@@ -63,6 +66,19 @@ namespace Telexistence
 
             // Start coroutine for sending data
             StartCoroutine(SendDataCoroutine());
+            sendButton.onClick.AddListener(SendAndClearInput);
+        }
+
+        private void SendAndClearInput()
+        {
+            string message = inputField.text;
+
+            if (!string.IsNullOrEmpty(message))
+            {
+                SendMessageToServer(message);
+                inputField.text = string.Empty;
+            }
+            //Debug.Log("Message sent: " + message);
         }
 
         void Update()
@@ -355,6 +371,9 @@ namespace Telexistence
         // Function to be called when the script is disabled
         void OnDisable()
         {
+            // Remove the SendAndClearInput method from the button's OnClick event
+            sendButton.onClick.RemoveListener(SendAndClearInput);
+
             Dispose();
         }
 

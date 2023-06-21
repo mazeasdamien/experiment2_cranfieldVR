@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 567.826, g: 498.17664, b: 480.81665, a: 1}
+  m_IndirectSpecularColor: {r: 567.826, g: 498.17664, b: 480.81714, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -99377,7 +99377,8 @@ MonoBehaviour:
   messageReachability: 0
   meshKinect: {fileID: 1719141294}
   receiving: 0
-  controller: {fileID: 0}
+  inputField: {fileID: 1914624442}
+  sendButton: {fileID: 1060788865}
 --- !u!4 &1944717083
 Transform:
   m_ObjectHideFlags: 0
