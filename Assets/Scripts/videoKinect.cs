@@ -24,17 +24,13 @@ namespace Telexistence
         private Calibration calibration;
         private Mat bgrMat;
         private Texture2D texture;
-        private bool markerCreated1 = false;
-        private bool markerCreated2 = false;
         public GameObject kinectGameObject;
-        public GameObject prefabL;
-        public GameObject prefaBigBox;
         public FanucHandler fanucHandler;
         private GameObject instantiatedPrefabL = null;
-        private GameObject instantiatedBigBox = null;
-        public RawImage outputSnapshot;
         public modalities modalities;
         public LaserPointer laser;
+        public Vector3 markerpos;
+        public GameObject cubePrefab;
 
         private void Start()
         {
@@ -93,99 +89,45 @@ namespace Telexistence
                         UpdateTexture(bgrMat, texture);
                         // Apply the texture to the outputImage RawImage
                         outputImage.texture = texture;
-                        if (outputSnapshot != null)
-                        {
-                            outputSnapshot.texture = texture;
-                        }
                         // Cleanup
                         pinnedArray.Free();
 
-                        if (modalities.useMarker)
+
+                        CvAruco.DetectMarkers(bgrMat, arucoDictionary, out var corners, out var ids, detectorParameters, out var rejectedPoints);
+                        CvAruco.DrawDetectedMarkers(bgrMat, corners, ids, Scalar.Green);
+
+                        if (ids.Length > 0)
                         {
-
-                            CvAruco.DetectMarkers(bgrMat, arucoDictionary, out var corners, out var ids, detectorParameters, out var rejectedPoints);
-                            CvAruco.DrawDetectedMarkers(bgrMat, corners, ids, Scalar.Green);
-
-                            if (ids.Length > 0)
+                            using (Mat rvecsMat = new Mat())
+                            using (Mat tvecsMat = new Mat())
                             {
-                                using (Mat rvecsMat = new Mat())
-                                using (Mat tvecsMat = new Mat())
+                                CvAruco.EstimatePoseSingleMarkers(corners, markerLength, cameraMatrix, distCoeffs, rvecsMat, tvecsMat);
+
+                                // Keep track of the ids that were detected in this frame
+                                HashSet<int> detectedIds = new HashSet<int>();
+
+                                for (int i = 0; i < ids.Length; i++)
                                 {
-                                    CvAruco.EstimatePoseSingleMarkers(corners, markerLength, cameraMatrix, distCoeffs, rvecsMat, tvecsMat);
+                                    int id = ids[i];
 
-                                    // Keep track of the ids that were detected in this frame
-                                    HashSet<int> detectedIds = new HashSet<int>();
-
-                                    for (int i = 0; i < ids.Length; i++)
+                                    if (id == 10)
                                     {
-                                        int id = ids[i];
+                                        Vec3d tvec = tvecsMat.Get<Vec3d>(i);
+                                        Vector3 markerPositionInKinectSpace = new Vector3(-(float)tvec[0], (float)tvec[1], (float)tvec[2]); // If Y axis needs to be flipped
+                                        Matrix4x4 kinectToWorld = kinectGameObject.transform.localToWorldMatrix;
+                                        Vector3 markerPositionInWorldSpace = kinectToWorld.MultiplyPoint3x4(markerPositionInKinectSpace);
 
-                                        if (id == 14)  // Instantiate only for marker with ID 14
+                                        // Store the position of marker in markerpos
+                                        markerpos = markerPositionInWorldSpace;
+
+                                        if (cubePrefab != null && instantiatedPrefabL == null)
                                         {
-                                            detectedIds.Add(id);
-
-                                            Vec3d rvec = rvecsMat.Get<Vec3d>(i);
-                                            Vec3d tvec = tvecsMat.Get<Vec3d>(i);
-
-                                            // Convert rotation vector to rotation matrix
-                                            Mat rotationMatrix = new Mat();
-                                            Cv2.Rodrigues(rvec, rotationMatrix);
-
-                                            // Get marker pose in Kinect space
-                                            Vector3 markerPositionInKinectSpace = new Vector3(-(float)tvec[0], (float)tvec[1], (float)tvec[2]); // If Y axis needs to be flipped
-
-                                            // Get the transform from Kinect space to Unity world space
-                                            Matrix4x4 kinectToWorld = kinectGameObject.transform.localToWorldMatrix;
-
-                                            // Transform the marker pose from Kinect space to Unity world space
-                                            Vector3 markerPositionInWorldSpace = kinectToWorld.MultiplyPoint3x4(markerPositionInKinectSpace);
-
-                                            DrawAxis(bgrMat, rvec, tvec, markerLength, cameraMatrix, distCoeffs);
-                                            // Instantiate the marker only if it hasn't been created yet
-                                            if (!markerCreated1)
-                                            {
-                                                instantiatedPrefabL = Instantiate(prefabL, markerPositionInWorldSpace, Quaternion.identity);
-                                                markerCreated1 = true;  // Set the markerCreated to true, so we know it's been created.
-                                            }
-                                            else
-                                            {
-                                                // If the marker has already been created, just update its position
-                                                instantiatedPrefabL.transform.position = markerPositionInWorldSpace;
-                                            }
+                                            instantiatedPrefabL = Instantiate(cubePrefab, markerpos, Quaternion.identity);
+                                            instantiatedPrefabL.transform.localScale = new Vector3(0.04f, 0.04f, 0.04f); // Set the scale to 4cm x 4cm x 4cm
                                         }
-                                        else if (id == 16) // Instantiate only for marker with ID 16
+                                        else if (instantiatedPrefabL != null)
                                         {
-                                            detectedIds.Add(id);
-
-                                            Vec3d rvec = rvecsMat.Get<Vec3d>(i);
-                                            Vec3d tvec = tvecsMat.Get<Vec3d>(i);
-
-                                            // Convert rotation vector to rotation matrix
-                                            Mat rotationMatrix = new Mat();
-                                            Cv2.Rodrigues(rvec, rotationMatrix);
-
-                                            // Get marker pose in Kinect space
-                                            Vector3 markerPositionInKinectSpace = new Vector3(-(float)tvec[0], (float)tvec[1], (float)tvec[2]);
-
-                                            // Get the transform from Kinect space to Unity world space
-                                            Matrix4x4 kinectToWorld = kinectGameObject.transform.localToWorldMatrix;
-
-                                            // Transform the marker pose from Kinect space to Unity world space
-                                            Vector3 markerPositionInWorldSpace = kinectToWorld.MultiplyPoint3x4(markerPositionInKinectSpace);
-
-                                            DrawAxis(bgrMat, rvec, tvec, markerLength, cameraMatrix, distCoeffs);
-
-                                            // Instantiate the marker only if it hasn't been created yet
-                                            if (!markerCreated2) // Assuming you have marker16Created as a boolean variable
-                                            {
-                                                instantiatedBigBox = Instantiate(prefaBigBox, markerPositionInWorldSpace, Quaternion.identity); // Assuming prefab16 is the new prefab for marker ID 16
-                                                markerCreated2 = true;
-                                            }
-                                            else
-                                            {
-                                                // If the marker has already been created, just update its position
-                                                instantiatedBigBox.transform.position = markerPositionInWorldSpace;
-                                            }
+                                            instantiatedPrefabL.transform.position = markerpos;
                                         }
                                     }
                                 }
@@ -324,6 +266,7 @@ namespace Telexistence
             texture.LoadRawTextureData(data);
             texture.Apply();
         }
+
 
         private void OnDestroy()
         {

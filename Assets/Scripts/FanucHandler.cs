@@ -51,6 +51,11 @@ namespace Telexistence
         public TMP_InputField inputField;
         public Button sendButton;
 
+        public Button runButton;
+        public Button resetButton;
+        public Button stopButton;
+        public Button homeButton;
+
         void Start()
         {
             // Initialize CancellationTokenSource
@@ -67,6 +72,11 @@ namespace Telexistence
             // Start coroutine for sending data
             StartCoroutine(SendDataCoroutine());
             sendButton.onClick.AddListener(SendAndClearInput);
+
+            runButton.onClick.AddListener(RunButtonClicked);
+            resetButton.onClick.AddListener(ResetButtonClicked);
+            stopButton.onClick.AddListener(StopButtonClicked);
+            homeButton.onClick.AddListener(HomeButtonClicked);
         }
 
         private void SendAndClearInput()
@@ -80,32 +90,30 @@ namespace Telexistence
             }
             //Debug.Log("Message sent: " + message);
         }
-
-        void Update()
+        void RunButtonClicked()
         {
-            // Check if F10, F11 or F12 is pressed and then send corresponding message
-            if (Input.GetKeyDown(KeyCode.F1))
-            {
-                // Reset the position and rotation of the Kinect cursor
-                kinect_cursor.position = initialPosition;
-                kinect_cursor.rotation = initialRotation;
-                SendMessageToServer("run");
-            }
-            else if (Input.GetKeyDown(KeyCode.F2))
-            {
-                SendMessageToServer("reset");
-            }
-            else if (Input.GetKeyDown(KeyCode.F3))
-            {
-                SendMessageToServer("stop");
-            }
-            else if (Input.GetKeyDown(KeyCode.F4))
-            {
-                // Reset the position and rotation of the Kinect cursor
-                kinect_cursor.position = initialPosition;
-                kinect_cursor.rotation = initialRotation;
-                SendMessageToServer("home");
-            }
+            // Reset the position and rotation of the Kinect cursor
+            kinect_cursor.position = initialPosition;
+            kinect_cursor.rotation = initialRotation;
+            SendMessageToServer("run");
+        }
+
+        void ResetButtonClicked()
+        {
+            SendMessageToServer("reset");
+        }
+
+        void StopButtonClicked()
+        {
+            SendMessageToServer("stop");
+        }
+
+        void HomeButtonClicked()
+        {
+            // Reset the position and rotation of the Kinect cursor
+            kinect_cursor.position = initialPosition;
+            kinect_cursor.rotation = initialRotation;
+            SendMessageToServer("home");
         }
 
         // Coroutine to send data to the server
@@ -341,6 +349,7 @@ namespace Telexistence
             worldPosition.localPosition = new Vector3(-position.x / 1000, position.y / 1000, position.z / 1000);
             Vector3 eulerAngles = CreateQuaternionFromFanucWPR(rotation.x, rotation.y, rotation.z).eulerAngles;
             worldPosition.localEulerAngles = new Vector3(eulerAngles.x, -eulerAngles.y, -eulerAngles.z);
+
         }
 
         // Function to convert a Quaternion to FANUC WPR (Wrist, Pitch, Roll) angles
