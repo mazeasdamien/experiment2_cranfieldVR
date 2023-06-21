@@ -48,8 +48,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   point1: {fileID: 0}
   point2: {fileID: 0}
-  rotationLimitsMin: {x: -60, y: -145, z: -30}
-  rotationLimitsMax: {x: 60, y: -92, z: 30}
 --- !u!1 &1429955143951815711
 GameObject:
   m_ObjectHideFlags: 0
@@ -67,7 +65,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1429955143951815710
 Transform:
   m_ObjectHideFlags: 0

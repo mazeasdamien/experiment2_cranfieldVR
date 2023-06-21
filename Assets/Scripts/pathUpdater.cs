@@ -26,6 +26,7 @@ public class pathUpdater : MonoBehaviour
     // the speed at which the robot moves between positions
     public float robotSpeed = 1f;
     public float pause = 2f;
+    private bool isFollowingPath = false;
 
     void Start()
     {
@@ -51,10 +52,6 @@ public class pathUpdater : MonoBehaviour
         string jsonString = File.ReadAllText(path);
         PositionData positionData = JsonUtility.FromJson<PositionData>(jsonString);
 
-        if (Input.GetKeyDown(KeyCode.PageUp))
-        {
-            StartPathFollowing();
-        }
             // Update the number of points
             lineRenderer.positionCount = positionData.positions.Count;
 
@@ -84,19 +81,22 @@ public class pathUpdater : MonoBehaviour
     // method to start the robot following the path
     public void StartPathFollowing()
     {
-        // stop any existing path-following coroutine
-        StopAllCoroutines();
-        // start a new path-following coroutine
-        StartCoroutine(FollowPath());
+        if (!isFollowingPath)
+        {
+            StopAllCoroutines();
+            StartCoroutine(FollowPath());
+        }
     }
 
     private IEnumerator FollowPath()
     {
+        isFollowingPath = true;
+
         // Save initial position and rotation
         Vector3 initialPos = robot_controller.transform.localPosition;
         Quaternion initialRot = robot_controller.transform.localRotation;
 
-        // inside FollowPath() method
+        // Follow the path defined by gameObjects
         foreach (GameObject target in gameObjects)
         {
             // convert target position into the robot's parent's local space
@@ -120,7 +120,7 @@ public class pathUpdater : MonoBehaviour
             robot_controller.transform.localPosition = targetPos;
             robot_controller.transform.rotation = targetRot; // use global rotation
 
-        yield return new WaitForSeconds(pause);
+            yield return new WaitForSeconds(pause);
         }
 
         // Return the robot controller to its initial position and rotation
@@ -137,6 +137,7 @@ public class pathUpdater : MonoBehaviour
         // Ensure the robot reaches the exact initial position and rotation
         robot_controller.transform.localPosition = initialPos;
         robot_controller.transform.localRotation = initialRot;
-    }
 
+        isFollowingPath = false;
+    }
 }

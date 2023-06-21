@@ -10,7 +10,7 @@ namespace TDLN.CameraControllers
     public class CameraOrbit : MonoBehaviour
     {
         public GameObject target;
-        public float distance = 10.0f;
+        public float distance = 5.0f;
 
         public float xSpeed = 250.0f;
         public float ySpeed = 120.0f;
