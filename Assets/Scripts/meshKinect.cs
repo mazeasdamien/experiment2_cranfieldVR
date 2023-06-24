@@ -104,6 +104,7 @@ namespace Telexistence
                 // Set the text to display the distance
                 TMP_Text tmpText = instantiatedText.GetComponentInChildren<TMP_Text>();
                 tmpText.text = midDepthInCm.ToString() + " cm";
+                fanucHandler.disstanceCam = midDepthInCm;
 
                 // Increase the font size
                 tmpText.fontSize = textsize;  // Adjust this value as needed

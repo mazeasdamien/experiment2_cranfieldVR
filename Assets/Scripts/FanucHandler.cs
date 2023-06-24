@@ -35,6 +35,7 @@ namespace Telexistence
 
         // Variable for previous message sent
         string previousMessage = null;
+        string previousMessage2 = null;
 
         // CancellationTokenSource for async operations
         private CancellationTokenSource _cancellationTokenSource;
@@ -56,6 +57,11 @@ namespace Telexistence
         public Button stopButton;
         public Button homeButton;
 
+        public GameObject p1;
+        public GameObject p2;
+        public GameObject center;
+        public float disstanceCam;
+
         void Start()
         {
             // Initialize CancellationTokenSource
@@ -71,13 +77,25 @@ namespace Telexistence
 
             // Start coroutine for sending data
             StartCoroutine(SendDataCoroutine());
-            sendButton.onClick.AddListener(SendAndClearInput);
+            StartCoroutine(SendDataPositionsCoroutine());
 
+            sendButton.onClick.AddListener(SendAndClearInput);
             runButton.onClick.AddListener(RunButtonClicked);
             resetButton.onClick.AddListener(ResetButtonClicked);
             stopButton.onClick.AddListener(StopButtonClicked);
             homeButton.onClick.AddListener(HomeButtonClicked);
         }
+
+            void Update()
+            {
+                // Check if either Enter key is pressed
+                if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+                {
+                    // Call your send method
+                    SendAndClearInput();
+                }
+            }
+
 
         private void SendAndClearInput()
         {
@@ -115,6 +133,59 @@ namespace Telexistence
             kinect_cursor.rotation = initialRotation;
             SendMessageToServer("home");
         }
+
+        IEnumerator SendDataPositionsCoroutine()
+        {
+            Vector3? previousKinectPosition = null;
+            Vector3? previousP1Position = null;
+            Vector3? previousP2Position = null;
+            Vector3? previousCenterPosition = null;
+
+            while (isRunning)
+            {
+                bool positionChanged = false;
+
+                if (!previousKinectPosition.HasValue || previousKinectPosition.Value != kinect_cursor.position)
+                {
+                    previousKinectPosition = kinect_cursor.position;
+                    positionChanged = true;
+                }
+
+                if (!previousP1Position.HasValue || previousP1Position.Value != p1.transform.position)
+                {
+                    previousP1Position = p1.transform.position;
+                    positionChanged = true;
+                }
+
+                if (!previousP2Position.HasValue || previousP2Position.Value != p2.transform.position)
+                {
+                    previousP2Position = p2.transform.position;
+                    positionChanged = true;
+                }
+
+                if (!previousCenterPosition.HasValue || previousCenterPosition.Value != center.transform.position)
+                {
+                    previousCenterPosition = center.transform.position;
+                    positionChanged = true;
+                }
+
+                if (positionChanged)
+                {
+                    // Create the message to send
+                    string message = $"{kinect_cursor.position.x},{kinect_cursor.position.y},{kinect_cursor.position.z}," +
+                                     $"{p1.transform.position.x},{p1.transform.position.y},{p1.transform.position.z}," +
+                                     $"{p2.transform.position.x},{p2.transform.position.y},{p2.transform.position.z}," +
+                                     $"{center.transform.position.x},{center.transform.position.y},{center.transform.position.z}," +
+                                     $"{disstanceCam}";
+
+                    SendMessageToServer(message);
+                }
+
+                // Wait for a fixed time interval before sending the next update
+                yield return new WaitForSeconds(0.1f);
+            }
+        }
+
 
         // Coroutine to send data to the server
         IEnumerator SendDataCoroutine()

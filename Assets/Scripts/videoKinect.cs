@@ -22,7 +22,7 @@ namespace Telexistence
         public float captureFrameRate = 24f;
         private BGRA[] colorData;
         private Calibration calibration;
-        private Mat bgrMat;
+        public Mat bgrMat;
         private Texture2D texture;
         public GameObject kinectGameObject;
         public FanucHandler fanucHandler;
@@ -180,54 +180,7 @@ namespace Telexistence
             distCoeffs.Set(0, 7, Intrinsics.Parameters[9]);
         }
 
-        public static Texture2D MatToTexture2D(Mat mat)
-        {
-            int width = mat.Width;
-            int height = mat.Height;
-            int channels = mat.Channels();
-            Texture2D texture;
-
-            // Convert the Mat's data to a byte array
-            byte[] data = new byte[width * height * mat.ElemSize()];
-            Marshal.Copy(mat.Data, data, 0, data.Length);
-
-            if (channels == 4)
-            {
-                texture = new Texture2D(width, height, TextureFormat.RGBA32, false);
-
-                // Swap the red and blue channels
-                for (int i = 0; i < data.Length; i += 4)
-                {
-                    byte temp = data[i];
-                    data[i] = data[i + 2];
-                    data[i + 2] = temp;
-                }
-            }
-            else if (channels == 3)
-            {
-                texture = new Texture2D(width, height, TextureFormat.RGB24, false);
-
-                // Swap the red and blue channels
-                for (int i = 0; i < data.Length; i += 3)
-                {
-                    byte temp = data[i];
-                    data[i] = data[i + 2];
-                    data[i + 2] = temp;
-                }
-            }
-            else
-            {
-                throw new ArgumentException("Input Mat must have 3 or 4 channels.");
-            }
-
-            // Load the byte array into the texture
-            texture.LoadRawTextureData(data);
-            texture.Apply();
-
-            return texture;
-        }
-
-        private void UpdateTexture(Mat mat, Texture2D texture)
+        public void UpdateTexture(Mat mat, Texture2D texture)
         {
             int width = mat.Width;
             int height = mat.Height;

@@ -4,6 +4,7 @@ using UnityEngine;
 using System.IO;
 using Telexistence;
 using UnityEngine.UI;
+using TMPro;
 
 [System.Serializable]
 public class Position
@@ -29,18 +30,34 @@ public class pathUpdater : MonoBehaviour
     public float robotSpeed = 1f;
     public float pause = 2f;
     private bool isFollowingPath = false;
-    public RawImage feed;
+    public videoKinect VideoKinect;
     public GameObject Canvas;
     public GameObject RawimageInstance;
 
+    private Vector3 initialStartPos;
+    private Vector3 initialEndPos;
+
+    // This will hold the previous path data
+    private PositionData previousPositionData;
+
     void Start()
     {
-        string path = Path.Combine(Application.streamingAssetsPath, "RobotData.json");
+        string jsonDirectory = Path.Combine(Path.GetTempPath(), "RobotData");
+        string jsonFileName = "RobotData.json";
+        string path = Path.Combine(jsonDirectory, jsonFileName);
+
+        if (!File.Exists(path))
+        {
+            File.Create(path).Close(); // Create the file if it does not exist
+        }
+
         string jsonString = File.ReadAllText(path);
         PositionData positionData = JsonUtility.FromJson<PositionData>(jsonString);
+        initialStartPos = robot_controller.transform.position; // start point
+        initialEndPos = robot_controller.transform.position; // end poin
 
         // Initialize the number of points
-        lineRenderer.positionCount = positionData.positions.Count;
+        lineRenderer.positionCount = positionData.positions.Count + 2; // +2 for start and end points
 
         // Instantiate gameObjects for all positions
         for (int i = 0; i < positionData.positions.Count; i++)
@@ -53,12 +70,23 @@ public class pathUpdater : MonoBehaviour
 
     void Update()
     {
-        string path = Path.Combine(Application.streamingAssetsPath, "RobotData.json");
+        string jsonDirectory = Path.Combine(Path.GetTempPath(), "RobotData");
+        string jsonFileName = "RobotData.json";
+        string path = Path.Combine(jsonDirectory, jsonFileName);
+
+        if (!File.Exists(path))
+        {
+            File.Create(path).Close(); // Create the file if it does not exist
+        }
+
         string jsonString = File.ReadAllText(path);
         PositionData positionData = JsonUtility.FromJson<PositionData>(jsonString);
 
-            // Update the number of points
-            lineRenderer.positionCount = positionData.positions.Count;
+        // Save the current path data as the previous path data
+        previousPositionData = positionData;
+
+        // Update the number of points
+        lineRenderer.positionCount = positionData.positions.Count + 2;
 
         // Add or remove gameObjects as necessary
         while (gameObjects.Count < positionData.positions.Count)
@@ -78,9 +106,13 @@ public class pathUpdater : MonoBehaviour
         for (int i = 0; i < positionData.positions.Count; i++)
         {
             Vector3 pos = new Vector3(positionData.positions[i].X, positionData.positions[i].Y, positionData.positions[i].Z);
-            lineRenderer.SetPosition(i, pos);
+            lineRenderer.SetPosition(i + 1, pos); // +1 to leave space for the start point
             gameObjects[i].transform.position = pos;
         }
+
+        // Set start and end points of the LineRenderer
+        lineRenderer.SetPosition(0, initialStartPos); // start point
+        lineRenderer.SetPosition(lineRenderer.positionCount - 1, initialEndPos); // end point
     }
 
     // method to start the robot following the path
@@ -102,6 +134,23 @@ public class pathUpdater : MonoBehaviour
         }
     }
 
+    // method to draw a path
+    private void DrawPath(PositionData positionData)
+    {
+        // Set the number of points
+        lineRenderer.positionCount = positionData.positions.Count + 2; // +2 for start and end points
+
+        // Set the positions
+        for (int i = 0; i < positionData.positions.Count; i++)
+        {
+            Vector3 pos = new Vector3(positionData.positions[i].X, positionData.positions[i].Y, positionData.positions[i].Z);
+            lineRenderer.SetPosition(i + 1, pos); // +1 to leave space for the start point
+        }
+
+        // Set start and end points of the LineRenderer
+        lineRenderer.SetPosition(0, robot_controller.transform.position); // start point
+        lineRenderer.SetPosition(lineRenderer.positionCount - 1, robot_controller.transform.position); // end point
+    }
 
     private IEnumerator FollowPath()
     {
@@ -142,19 +191,27 @@ public class pathUpdater : MonoBehaviour
 
             // Set the position of the RawImageInstance to arrange them horizontally
             RectTransform rectTransform = rawImageObj.GetComponent<RectTransform>();
-            rectTransform.anchoredPosition = new Vector2(100 + gameObjects.IndexOf(target) * 183, -270);
+            int index = gameObjects.IndexOf(target);
+            int row = index / 5; // Integer division to get the row number
+            int column = index % 5; // Modulo to get the column number within the row
+            rectTransform.anchoredPosition = new Vector2(100 + column * 200, -270 - row * 220); // Adjust these values as needed
 
-            // Get the RawImage component and apply the snapshot of the feed
+            // Get the RawImage component
             RawImage rawImage = rawImageObj.GetComponent<RawImage>();
-            Texture2D snapshot = new Texture2D(feed.texture.width, feed.texture.height);
-            RenderTexture.active = feed.texture as RenderTexture;
 
-            // Yield a frame to ensure the RenderTexture is ready
-            yield return new WaitForEndOfFrame();
+            Texture2D texture = new Texture2D(200, 200, TextureFormat.RGB24, false);
 
-            snapshot.ReadPixels(new Rect(0, 0, feed.texture.width, feed.texture.height), 0, 0);
-            snapshot.Apply();
-            rawImage.texture = snapshot;
+            VideoKinect.UpdateTexture(VideoKinect.bgrMat, texture);
+
+            // Apply the cropped image to the RawImage
+            rawImage.texture = texture;
+
+            // Update the instance number
+            TextMeshProUGUI instanceNumber = rawImageObj.GetComponentInChildren<TextMeshProUGUI>(); // Assumes the Text component is a child of RawImageInstance
+            if (instanceNumber != null)
+            {
+                instanceNumber.text = (index + 1).ToString(); // +1 because index is 0-based
+            }
         }
 
         // Return the robot controller to its initial position and rotation

@@ -34,7 +34,7 @@ namespace TDLN.CameraControllers
         {
             if (distance < 0.5) distance = 0.5f;
             distance -= Input.GetAxis("Mouse ScrollWheel") * 2;
-            if (target && (Input.GetMouseButton(0) || Input.GetMouseButton(1)))
+            if (target)
             {
                 var pos = Input.mousePosition;
                 var dpiScale = 1f;
@@ -44,16 +44,26 @@ namespace TDLN.CameraControllers
 
                 if (pos.x < 380 * dpiScale && Screen.height - pos.y < 250 * dpiScale) return;
 
-                x += Input.GetAxis("Mouse X") * xSpeed * 0.02f;
-                y -= Input.GetAxis("Mouse Y") * ySpeed * 0.02f;
+                if (Input.GetMouseButton(0)) // Left mouse button held
+                {
+                    x += Input.GetAxis("Mouse X") * xSpeed * 0.02f;
+                    y -= Input.GetAxis("Mouse Y") * ySpeed * 0.02f;
 
-                y = ClampAngle(y, yMinLimit, yMaxLimit);
-                var rotation = Quaternion.Euler(y, x, 0);
-                var position = rotation * new Vector3(0.0f, 0.0f, -distance) + target.transform.position;
-                transform.rotation = rotation;
-                transform.position = position;
-
+                    y = ClampAngle(y, yMinLimit, yMaxLimit);
+                    var rotation = Quaternion.Euler(y, x, 0);
+                    var position = rotation * new Vector3(0.0f, 0.0f, -distance) + target.transform.position;
+                    transform.rotation = rotation;
+                    transform.position = position;
+                }
+                else if (Input.GetMouseButton(1)) // Right mouse button held
+                {
+                    // Translate camera along ZX plane
+                    float translateSpeed = 0.1f; // Adjust speed to your liking
+                    Vector3 translation = new Vector3(Input.GetAxis("Mouse X") * translateSpeed, 0, Input.GetAxis("Mouse Y") * translateSpeed);
+                    transform.Translate(translation, Space.World);
+                }
             }
+
             if (Input.GetMouseButton(1))
             {
                 Cursor.visible = false;
@@ -64,7 +74,6 @@ namespace TDLN.CameraControllers
                 Cursor.visible = true;
                 Cursor.lockState = CursorLockMode.None;
             }
-
 
             if (Math.Abs(prevDistance - distance) > 0.001f)
             {
