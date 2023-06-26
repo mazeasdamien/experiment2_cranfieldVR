@@ -35,7 +35,6 @@ namespace Telexistence
 
         // Variable for previous message sent
         string previousMessage = null;
-        string previousMessage2 = null;
 
         // CancellationTokenSource for async operations
         private CancellationTokenSource _cancellationTokenSource;
@@ -68,7 +67,7 @@ namespace Telexistence
             _cancellationTokenSource = new CancellationTokenSource();
 
             // Connect to the server and start reading data
-            ConnectToServer();
+            ConnectToServerAsync();
             ReadDataFromServerAsync(_cancellationTokenSource.Token);
 
             // Save initial position and rotation of the Kinect cursor
@@ -86,16 +85,15 @@ namespace Telexistence
             homeButton.onClick.AddListener(HomeButtonClicked);
         }
 
-            void Update()
-            {
-                // Check if either Enter key is pressed
-                if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
-                {
-                    // Call your send method
-                    SendAndClearInput();
-                }
-            }
-
+         void Update()
+         {
+             // Check if either Enter key is pressed
+             if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+             {
+                 // Call your send method
+                 SendAndClearInput();
+             }
+         }
 
         private void SendAndClearInput()
         {
@@ -254,13 +252,27 @@ namespace Telexistence
         }
 
         // Function to connect to the server
-        private void ConnectToServer()
+        private async void ConnectToServerAsync()
         {
             try
             {
-                _client = new TcpClient(_serverIP, _port);
+                _client = new TcpClient();
+                await _client.ConnectAsync(_serverIP, _port);
+
                 _stream = _client.GetStream();
                 Debug.Log("Connected to server successfully.");
+            }
+            catch (ArgumentNullException e)
+            {
+                Debug.LogError("The server IP was null: " + e.Message);
+            }
+            catch (ArgumentOutOfRangeException e)
+            {
+                Debug.LogError("The port number was invalid: " + e.Message);
+            }
+            catch (SocketException e)
+            {
+                Debug.LogError("Could not connect to the server: " + e.Message);
             }
             catch (Exception e)
             {

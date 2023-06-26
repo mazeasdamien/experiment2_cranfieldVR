@@ -5,6 +5,7 @@ using System.IO;
 using Telexistence;
 using UnityEngine.UI;
 using TMPro;
+using System;
 
 [System.Serializable]
 public class Position
@@ -37,14 +38,14 @@ public class pathUpdater : MonoBehaviour
     private Vector3 initialStartPos;
     private Vector3 initialEndPos;
 
-    // This will hold the previous path data
-    private PositionData previousPositionData;
+    private string path;
+    private DateTime lastRead = DateTime.MinValue;
 
     void Start()
     {
         string jsonDirectory = Path.Combine(Path.GetTempPath(), "RobotData");
         string jsonFileName = "RobotData.json";
-        string path = Path.Combine(jsonDirectory, jsonFileName);
+        path = Path.Combine(jsonDirectory, jsonFileName);
 
         if (!File.Exists(path))
         {
@@ -70,37 +71,34 @@ public class pathUpdater : MonoBehaviour
 
     void Update()
     {
-        string jsonDirectory = Path.Combine(Path.GetTempPath(), "RobotData");
-        string jsonFileName = "RobotData.json";
-        string path = Path.Combine(jsonDirectory, jsonFileName);
-
         if (!File.Exists(path))
         {
             File.Create(path).Close(); // Create the file if it does not exist
         }
 
-        string jsonString = File.ReadAllText(path);
-        PositionData positionData = JsonUtility.FromJson<PositionData>(jsonString);
+        var lastWriteTime = File.GetLastWriteTimeUtc(path);
 
-        // Save the current path data as the previous path data
-        previousPositionData = positionData;
-
-        // Update the number of points
-        lineRenderer.positionCount = positionData.positions.Count + 2;
-
-        // Add or remove gameObjects as necessary
-        while (gameObjects.Count < positionData.positions.Count)
+        if (lastWriteTime > lastRead)
         {
-            Vector3 pos = new Vector3(positionData.positions[gameObjects.Count].X, positionData.positions[gameObjects.Count].Y, positionData.positions[gameObjects.Count].Z);
-            GameObject obj = Instantiate(prefab, pos, Quaternion.Euler(-100, -90, 0));
-            gameObjects.Add(obj);
-        }
-        while (gameObjects.Count > positionData.positions.Count)
-        {
-            GameObject toRemove = gameObjects[gameObjects.Count - 1];
-            gameObjects.RemoveAt(gameObjects.Count - 1);
-            Destroy(toRemove);
-        }
+            lastRead = lastWriteTime;
+
+            string jsonString = File.ReadAllText(path);
+            PositionData positionData = JsonUtility.FromJson<PositionData>(jsonString);
+            lineRenderer.positionCount = positionData.positions.Count + 2;
+
+            // Add or remove gameObjects as necessary
+            while (gameObjects.Count < positionData.positions.Count)
+            {
+                Vector3 pos = new Vector3(positionData.positions[gameObjects.Count].X, positionData.positions[gameObjects.Count].Y, positionData.positions[gameObjects.Count].Z);
+                GameObject obj = Instantiate(prefab, pos, Quaternion.Euler(-100, -90, 0));
+                gameObjects.Add(obj);
+            }
+            while (gameObjects.Count > positionData.positions.Count)
+            {
+                GameObject toRemove = gameObjects[gameObjects.Count - 1];
+                gameObjects.RemoveAt(gameObjects.Count - 1);
+                Destroy(toRemove);
+            }
 
         // Update positions of all gameObjects
         for (int i = 0; i < positionData.positions.Count; i++)
@@ -113,6 +111,7 @@ public class pathUpdater : MonoBehaviour
         // Set start and end points of the LineRenderer
         lineRenderer.SetPosition(0, initialStartPos); // start point
         lineRenderer.SetPosition(lineRenderer.positionCount - 1, initialEndPos); // end point
+                    }
     }
 
     // method to start the robot following the path
@@ -133,25 +132,6 @@ public class pathUpdater : MonoBehaviour
             StartCoroutine(FollowPath());
         }
     }
-
-    // method to draw a path
-    private void DrawPath(PositionData positionData)
-    {
-        // Set the number of points
-        lineRenderer.positionCount = positionData.positions.Count + 2; // +2 for start and end points
-
-        // Set the positions
-        for (int i = 0; i < positionData.positions.Count; i++)
-        {
-            Vector3 pos = new Vector3(positionData.positions[i].X, positionData.positions[i].Y, positionData.positions[i].Z);
-            lineRenderer.SetPosition(i + 1, pos); // +1 to leave space for the start point
-        }
-
-        // Set start and end points of the LineRenderer
-        lineRenderer.SetPosition(0, robot_controller.transform.position); // start point
-        lineRenderer.SetPosition(lineRenderer.positionCount - 1, robot_controller.transform.position); // end point
-    }
-
     private IEnumerator FollowPath()
     {
         isFollowingPath = true;
@@ -179,10 +159,6 @@ public class pathUpdater : MonoBehaviour
                 elapsedTime += Time.deltaTime;
                 yield return null;
             }
-
-            // Ensure the robot reaches the exact target position and rotation
-            robot_controller.transform.localPosition = targetPos;
-            robot_controller.transform.rotation = targetRot; // use global rotation
 
             yield return new WaitForSeconds(pause);
 

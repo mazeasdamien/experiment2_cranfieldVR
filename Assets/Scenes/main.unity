@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 567.7608, g: 498.135, b: 480.78296, a: 1}
+  m_IndirectSpecularColor: {r: 567.80145, g: 498.1671, b: 480.80835, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -26423,8 +26423,8 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 458965938}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -1.384}
+  m_LocalRotation: {x: -0.008178115, y: -0.9874546, z: 0.00028805085, w: -0.15769114}
+  m_LocalPosition: {x: 0, y: 0, z: 0.721}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -26444,10 +26444,10 @@ RectTransform:
   - {fileID: 38824746}
   m_Father: {fileID: 0}
   m_RootOrder: 16
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0.18, y: -198.145, z: 0.92}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: -0.5212, y: 1.223}
+  m_AnchoredPosition: {x: -1.207, y: 1.463}
   m_SizeDelta: {x: 1.5709, y: 0.616}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &461127376
@@ -61523,8 +61523,8 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1107396761}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -1.384}
+  m_LocalRotation: {x: -0.008178115, y: -0.9874546, z: 0.00028805085, w: -0.15769114}
+  m_LocalPosition: {x: 0, y: 0, z: 0.72099996}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -61538,10 +61538,10 @@ RectTransform:
   - {fileID: 864334780}
   m_Father: {fileID: 0}
   m_RootOrder: 15
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0.18, y: -198.145, z: 0.92}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: -0.5212, y: 1.223}
+  m_AnchoredPosition: {x: -1.207, y: 1.463}
   m_SizeDelta: {x: 1.5709, y: 0.616}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1107791485
@@ -93717,12 +93717,11 @@ MonoBehaviour:
   markerLength: 0.08
   captureFrameRate: 24
   kinectGameObject: {fileID: 1905019947}
-  prefabL: {fileID: 6392216969798074489, guid: b8b1213ee9449a04d97a4bcf3efe0159, type: 3}
-  prefaBigBox: {fileID: 5124325914515676195, guid: 08d2d828154ae8d468ac8e1645017897, type: 3}
   fanucHandler: {fileID: 1944717082}
-  outputSnapshot: {fileID: 0}
   modalities: {fileID: 701209060}
   laser: {fileID: 565698856}
+  markerpos: {x: 0, y: 0, z: 0}
+  cubePrefab: {fileID: 0}
 --- !u!1 &1719170260
 GameObject:
   m_ObjectHideFlags: 0
@@ -106805,7 +106804,16 @@ MonoBehaviour:
   messageReachability: 0
   meshKinect: {fileID: 1719141294}
   receiving: 0
-  controller: {fileID: 2041956709}
+  inputField: {fileID: 0}
+  sendButton: {fileID: 0}
+  runButton: {fileID: 0}
+  resetButton: {fileID: 0}
+  stopButton: {fileID: 0}
+  homeButton: {fileID: 0}
+  p1: {fileID: 0}
+  p2: {fileID: 0}
+  center: {fileID: 0}
+  disstanceCam: 0
 --- !u!4 &1944717083
 Transform:
   m_ObjectHideFlags: 0
