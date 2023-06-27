@@ -19,7 +19,6 @@ namespace Telexistence
         int depthHeight;
         int num;
         Mesh mesh;
-        Mesh emptyMesh;
         Vector3[] vertices;
         Color32[] colors;
         int[] indeces;
@@ -50,10 +49,6 @@ namespace Telexistence
             {
                 Destroy(mesh);
             }
-            if (emptyMesh != null)
-            {
-                Destroy(emptyMesh);
-            }
         }
 
         private void OnApplicationQuit()
@@ -66,7 +61,6 @@ namespace Telexistence
         void Start()
         {
             mesh = new Mesh();
-            emptyMesh = new Mesh();
             InitKinect();
             InitMesh();
             StartCoroutine(KinectLoop(kinect));
@@ -123,16 +117,6 @@ namespace Telexistence
                 }
             }
             prevDepth = midDepth;
-            // Save the last mesh before the robot starts moving
-            if (!isRobotMoving && fanucHandler.receiving)
-            {
-                if (lastMesh != null)
-                {
-                    Destroy(lastMesh);
-                }
-                lastMesh = Instantiate(mesh);
-                hasAppliedLastMesh = false;
-            }
 
             // Apply the last mesh to the dmeshTempEffect VFX when the robot starts moving
             if (isRobotMoving && !hasAppliedLastMesh)
@@ -141,13 +125,6 @@ namespace Telexistence
                 dmeshTempEffect.transform.position = effect.transform.position;
                 dmeshTempEffect.transform.rotation = effect.transform.rotation;
                 hasAppliedLastMesh = true;
-            }
-
-            // Clear the mesh if the robot is moving
-            if (isRobotMoving)
-            {
-                mesh.Clear();
-                effect.SetMesh("RemoteData", emptyMesh);
             }
         }
 
@@ -281,11 +258,7 @@ namespace Telexistence
                     {
                         effect.SetMesh("RemoteData", mesh);
                     }
-                    else
-                    {
-                        effect.SetMesh("RemoteData", emptyMesh);
-                    }
-                yield return new WaitForSeconds(0.2f);
+                yield return new WaitForSeconds(0);
             }
         }
     }

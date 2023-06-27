@@ -8,19 +8,23 @@ public class RestrictMovement : MonoBehaviour
 
     public FanucHandler fanucHandler;
 
-    private Vector3 lastValidPosition;
-    private Quaternion lastValidRotation;
+    public Vector3 lastValidPosition;
+    public Quaternion lastValidRotation;
 
     public Material original;
     public Material notPossible;
 
     public GameObject controller;
+    private Renderer controllerRenderer;
 
     private void Start()
     {
         // Initialize last valid position and rotation
         lastValidPosition = transform.position;
         lastValidRotation = transform.rotation;
+
+        // Get the Renderer component from the controller
+        controllerRenderer = controller.GetComponent<Renderer>();
     }
 
     private void Update()
@@ -31,11 +35,8 @@ public class RestrictMovement : MonoBehaviour
         // Check if FanucHandler's conditions are met
         if (fanucHandler.messageReachability)
         {
-            //controller.GetComponent<>()
-
-            // Store last valid position and rotation
-            lastValidPosition = position;
-            lastValidRotation = rotation;
+            // Change the controller's material to the original
+            controllerRenderer.material = original;
 
             float x = Mathf.Clamp(position.x, Mathf.Min(point1.position.x, point2.position.x), Mathf.Max(point1.position.x, point2.position.x));
             float y = Mathf.Clamp(position.y, Mathf.Min(point1.position.y, point2.position.y), Mathf.Max(point1.position.y, point2.position.y));
@@ -47,6 +48,9 @@ public class RestrictMovement : MonoBehaviour
         }
         else
         {
+            // Change the controller's material to notPossible
+            controllerRenderer.material = notPossible;
+
             // Reset to last valid position and rotation when conditions are not met
             transform.position = lastValidPosition;
             transform.rotation = lastValidRotation;

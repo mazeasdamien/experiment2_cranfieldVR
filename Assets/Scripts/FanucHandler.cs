@@ -15,6 +15,7 @@ namespace Telexistence
         // Network and stream variables
         private TcpClient _client;
         private NetworkStream _stream;
+        public RestrictMovement RestrictMovement;
 
         // Server connection settings
         private string _serverIP = "127.0.0.1";
@@ -38,10 +39,8 @@ namespace Telexistence
         private CancellationTokenSource _cancellationTokenSource;
 
         // Message reachability flag
-        public bool messageReachability =true;
+        public bool messageReachability;
         public meshKinect meshKinect;
-
-        public bool receiving;
 
         private bool isRunning = true;
 
@@ -91,7 +90,6 @@ namespace Telexistence
             }
         }
 
-        // Coroutine to send data to the server
         IEnumerator SendDataCoroutine()
         {
             while (isRunning)
@@ -134,7 +132,6 @@ namespace Telexistence
 
         }
 
-        // Function to send a message to the server
         private void SendMessageToServer(string message)
         {
             if (_client != null && _client.Connected)
@@ -151,7 +148,6 @@ namespace Telexistence
             }
         }
 
-        // Function to connect to the server
         private void ConnectToServer()
         {
             try
@@ -166,14 +162,12 @@ namespace Telexistence
             }
         }
 
-        // Function to read data from the server asynchronously
         private async void ReadDataFromServerAsync(CancellationToken cancellationToken)
         {
             if (_stream == null) return;
 
             byte[] buffer = new byte[1024];
             StringBuilder accumulatedData = new StringBuilder();
-
             while (!cancellationToken.IsCancellationRequested)
             {
                 if (_client.Connected)
@@ -226,16 +220,21 @@ namespace Telexistence
                                 float r = float.Parse(values[11]);
 
                                 UpdateRobotTransforms(jointAngles, new Vector3(x, y, z), new Vector3(w, p, r));
-
-                                // Set receiving to true and start the reset coroutine
-                                receiving = true;
-                                StartCoroutine(ResetReceivingCoroutine());
                             }
                             // Handle message with reachability information
                             else if (values.Length == 1)
                             {
-                                    bool.TryParse(values[0], out messageReachability);
-                                    //Debug.Log("Message Reachability: " + messageReachability);
+                                if (data.Trim() == "false")
+                                {
+                                    messageReachability = false;
+                                }
+                                else
+                                {
+                                    RestrictMovement.lastValidPosition = kinect_cursor.position;
+                                    RestrictMovement.lastValidRotation = kinect_cursor.rotation;
+                                    messageReachability =true;
+
+                                }
                             }
                             else
                             {
@@ -259,15 +258,6 @@ namespace Telexistence
                     }
                 }
             }
-        }
-
-        private IEnumerator ResetReceivingCoroutine()
-        {
-            // Wait for 0.5 seconds
-            yield return new WaitForSeconds(2f);
-
-            // Set receiving back to false
-            receiving = false;
         }
 
         // Function to update robot transforms based on received joint angles and position
