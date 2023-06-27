@@ -50,7 +50,6 @@ namespace Telexistence
 
         public TMP_InputField inputField;
         public Button sendButton;
-
         public Button runButton;
         public Button resetButton;
         public Button stopButton;
@@ -78,11 +77,14 @@ namespace Telexistence
             StartCoroutine(SendDataCoroutine());
             StartCoroutine(SendDataPositionsCoroutine());
 
-            sendButton.onClick.AddListener(SendAndClearInput);
-            runButton.onClick.AddListener(RunButtonClicked);
-            resetButton.onClick.AddListener(ResetButtonClicked);
-            stopButton.onClick.AddListener(StopButtonClicked);
-            homeButton.onClick.AddListener(HomeButtonClicked);
+            if (sendButton != null && runButton != null && resetButton != null && stopButton != null && homeButton != null)
+            {
+                sendButton.onClick.AddListener(SendAndClearInput);
+                runButton.onClick.AddListener(RunButtonClicked);
+                resetButton.onClick.AddListener(ResetButtonClicked);
+                stopButton.onClick.AddListener(StopButtonClicked);
+                homeButton.onClick.AddListener(HomeButtonClicked);
+            }
         }
 
          void Update()
