@@ -94,7 +94,23 @@ namespace Telexistence
                  // Call your send method
                  SendAndClearInput();
              }
-         }
+            if (Input.GetKeyDown(KeyCode.F1))
+            {
+                RunButtonClicked();
+            }
+            if (Input.GetKeyDown(KeyCode.F2))
+            {
+                ResetButtonClicked();
+            }
+            if (Input.GetKeyDown(KeyCode.F3))
+            {
+                StopButtonClicked();
+            }
+            if (Input.GetKeyDown(KeyCode.F4))
+            {
+                HomeButtonClicked();
+            }
+        }
 
         private void SendAndClearInput()
         {
@@ -111,11 +127,10 @@ namespace Telexistence
                 SendMessageToServer(message1+message);
                 inputField.text = string.Empty;
             }
-            //Debug.Log("Message sent: " + message);
         }
+
         void RunButtonClicked()
         {
-            // Reset the position and rotation of the Kinect cursor
             kinect_cursor.position = initialPosition;
             kinect_cursor.rotation = initialRotation;
             SendMessageToServer("run");
@@ -133,13 +148,11 @@ namespace Telexistence
 
         void HomeButtonClicked()
         {
-            // Reset the position and rotation of the Kinect cursor
             kinect_cursor.position = initialPosition;
             kinect_cursor.rotation = initialRotation;
             SendMessageToServer("home");
         }
 
-        // Coroutine to send data to the server
         IEnumerator SendDataCoroutine()
         {
             while (isRunning)
