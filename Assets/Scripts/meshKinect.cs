@@ -42,6 +42,8 @@ namespace Telexistence
         private Short3[] pointCloud;
         private ushort[] depthData;
 
+        private int prevDisplayedDepth = -1;
+
         private void OnDestroy()
         {
             if (mesh != null)
@@ -72,46 +74,53 @@ namespace Telexistence
 
         void Update()
         {
+            // Other parts of the update method
+
             int midDepthInCm = Mathf.CeilToInt(midDepth / 10.0f);
-            int prevDepthInCm = Mathf.CeilToInt(prevDepth / 10.0f);
 
-            if (midDepthInCm == 0)
+            // Check if the absolute difference between the current and previous displayed depth is greater than or equal to 2cm
+            if (Mathf.Abs(prevDisplayedDepth - midDepthInCm) >= 2)
             {
-                lineCreator.lineDistance = 0;
-                if (instantiatedText != null)
-                {
-                    instantiatedText.SetActive(false);
-                }
-            }
-            else
-            {
-                lineCreator.lineDistance = (midDepth / 10.0f) / 100;
+                prevDisplayedDepth = midDepthInCm;
 
-                // Instantiate the text prefab if it doesn't exist
-                if (instantiatedText == null)
+                if (midDepthInCm == 0)
                 {
-                    instantiatedText = Instantiate(textPrefab, transform);
+                    lineCreator.lineDistance = 0;
+                    if (instantiatedText != null)
+                    {
+                        instantiatedText.SetActive(false);
+                    }
                 }
                 else
                 {
-                    instantiatedText.SetActive(true);
+                    lineCreator.lineDistance = (midDepth / 10.0f) / 100;
+
+                    // Instantiate the text prefab if it doesn't exist
+                    if (instantiatedText == null)
+                    {
+                        instantiatedText = Instantiate(textPrefab, transform);
+                    }
+                    else
+                    {
+                        instantiatedText.SetActive(true);
+                    }
+
+                    // Position the instantiated text in the middle of the line
+                    instantiatedText.transform.position = lineCreator.originObject.transform.position + lineCreator.originObject.transform.TransformDirection(0, lineCreator.lineDistance / 2, 0);
+
+                    // Set the text to display the distance
+                    TMP_Text tmpText = instantiatedText.GetComponentInChildren<TMP_Text>();
+                    tmpText.text = midDepthInCm.ToString() + " cm";
+
+                    // Increase the font size
+                    tmpText.fontSize = textsize;  // Adjust this value as needed
+
+                    // Make the text face the camera
+                    instantiatedText.transform.LookAt(Camera.main.transform);
+
+                    // The text will be flipped 180 degrees on its vertical axis after LookAt. Adjust it back.
+                    instantiatedText.transform.Rotate(0, 180, 0);
                 }
-
-                // Position the instantiated text in the middle of the line
-                instantiatedText.transform.position = lineCreator.originObject.transform.position + lineCreator.originObject.transform.TransformDirection(0, lineCreator.lineDistance / 2, 0);
-
-                // Set the text to display the distance
-                TMP_Text tmpText = instantiatedText.GetComponentInChildren<TMP_Text>();
-                tmpText.text = midDepthInCm.ToString() + " cm";
-
-                // Increase the font size
-                tmpText.fontSize = textsize;  // Adjust this value as needed
-
-                // Make the text face the camera
-                instantiatedText.transform.LookAt(Camera.main.transform);
-
-                // The text will be flipped 180 degrees on its vertical axis after LookAt. Adjust it back.
-                instantiatedText.transform.Rotate(0, 180, 0);
             }
             prevDepth = midDepth;
             // Save the last mesh before the robot starts moving
@@ -276,7 +285,7 @@ namespace Telexistence
                     {
                         effect.SetMesh("RemoteData", emptyMesh);
                     }
-                yield return null;
+                yield return new WaitForSeconds(0.2f);
             }
         }
     }

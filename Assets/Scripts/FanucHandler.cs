@@ -39,7 +39,6 @@ namespace Telexistence
 
         // Message reachability flag
         public bool messageReachability =true;
-        private bool isYRotationInRange = true;
         public meshKinect meshKinect;
 
         public bool receiving;
@@ -110,8 +109,6 @@ namespace Telexistence
                     // Check if yRotation is within the desired range
                     if (yRotation >= 5 && yRotation <= 70)
                     {
-                        isYRotationInRange = true; // Update bool
-
                         // Convert rotation to Fanuc WPR representation
                         Vector3 wpr = CreateFanucWPRFromQuaternion(kinect_cursor.localRotation);
 
@@ -128,10 +125,6 @@ namespace Telexistence
                                 previousMessage = message;
                             }
                         }
-                    }
-                    else
-                    {
-                        isYRotationInRange = false; // Update bool
                     }
                 }
 
@@ -241,15 +234,8 @@ namespace Telexistence
                             // Handle message with reachability information
                             else if (values.Length == 1)
                             {
-                                if (isYRotationInRange)
-                                {
                                     bool.TryParse(values[0], out messageReachability);
                                     //Debug.Log("Message Reachability: " + messageReachability);
-                                }
-                                else
-                                {
-                                    messageReachability = false;
-                                }
                             }
                             else
                             {

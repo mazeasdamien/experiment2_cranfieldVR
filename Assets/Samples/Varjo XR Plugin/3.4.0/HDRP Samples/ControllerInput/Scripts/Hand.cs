@@ -22,7 +22,6 @@ namespace VarjoExample
         public videoKinect videoKinect;
         public FanucHandler FH;
         public GameObject c;
-        public Color mc;
 
         void Awake()
         {
@@ -34,16 +33,6 @@ namespace VarjoExample
         // Update is called once per frame
         void Update()
         {
-
-            if (FH.messageReachability) 
-            { 
-                c.GetComponent<Renderer>().material.color = mc;
-            }
-            else
-            {
-                c.GetComponent<Renderer>().material.color = Color.red;
-            }
-
             if (controller.triggerButton)
             {
                 if (!triggerDown)
