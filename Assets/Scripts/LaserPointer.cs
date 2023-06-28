@@ -6,6 +6,7 @@ using Telexistence;
 using System.Collections.Generic;
 using System.IO;
 using TMPro;
+using System.Collections;
 
 public class LaserPointer : MonoBehaviour
 {
@@ -19,23 +20,18 @@ public class LaserPointer : MonoBehaviour
     public Slider slider;
 
     // Define buttons for the shapes and colors
-    public Button btn_CIRCLE;
-    public Button btn_SQUARE;
-    public Button btn_TRIANGLE;
-    public Button btn_STAR;
-    public Button btn_BLUE;
-    public Button btn_GREEN;
-    public Button btn_YELLOW;
-    public Button btn_RED;
+    public List<Button> shape = new List<Button>();
+    public List<Button> color = new List<Button>();
 
     // Define the NEXT_TASK button
     public Button btn_NEXT_TASK;
 
     // Task-related variables
     private int currentTask = 0;
-    private bool shapeSelected = false;
-    private bool colorSelected = false;
+    public string shapeSelected;
+    public string colorSelected;
 
+    private Button lastButtonHit;
 
     public Controller controller;
     public TLXQuestionnaire tLX;
@@ -52,6 +48,7 @@ public class LaserPointer : MonoBehaviour
     private ColorBlock initialButtonColors; // Store the initial colors of the button
     private ColorBlock initialNextTaskButtonColors; // Store the initial colors of the next task button
     private bool lastFramePrimary2DAxisClick = false;
+    private bool hasExecuted = false;
 
     void Start()
     {
@@ -99,6 +96,59 @@ public class LaserPointer : MonoBehaviour
         lineRenderer.SetPosition(0, transform.position);
         lineRenderer.SetPosition(1, transform.position + transform.forward * maxDistance);
 
+        foreach (var b in shape)
+        {
+            if (shapeSelected != null && shapeSelected == b.gameObject.name)
+            {
+                ColorBlock colorBlock = b.colors;
+                colorBlock.normalColor = Color.green;
+                b.colors = colorBlock;
+            }
+            else
+            {
+                ColorBlock colorBlock = b.colors;
+                colorBlock.normalColor = Color.white;
+                b.colors = colorBlock;
+            }
+        }
+
+        foreach (var b in color)
+        {
+            if (colorSelected != null && colorSelected == b.gameObject.name)
+            {
+                ColorBlock colorBlock = b.colors;
+                colorBlock.normalColor = Color.green; // Change the color to green
+                b.colors = colorBlock;
+            }
+            else
+            {
+                ColorBlock colorBlock = b.colors;
+                colorBlock.normalColor = Color.white;
+                b.colors = colorBlock;
+            }
+        }
+
+        if (mm.CurrentTask == modalities.TaskType.start)
+        {
+            // All tasks are completed, so change the button label to "SAVE"
+            btn_NEXT_TASK.GetComponentInChildren<TextMeshProUGUI>().text = "TASK 1";
+        }
+        else if (mm.CurrentTask == modalities.TaskType.t1)
+        {
+            // All tasks are completed, so change the button label to "SAVE"
+            btn_NEXT_TASK.GetComponentInChildren<TextMeshProUGUI>().text = "TASK 2";
+        }
+        else if (mm.CurrentTask == modalities.TaskType.t2)
+        {
+            // All tasks are completed, so change the button label to "SAVE"
+            btn_NEXT_TASK.GetComponentInChildren<TextMeshProUGUI>().text = "TASK 3";
+        }
+        else if (mm.CurrentTask == modalities.TaskType.t3)
+        {
+            // There are still tasks remaining, so keep the button label as "NEXT TASK"
+            btn_NEXT_TASK.GetComponentInChildren<TextMeshProUGUI>().text = "SAVE";
+        }
+
         if (controller.primary2DAxisTouch)
         {
             // Regular physics raycast
@@ -113,31 +163,36 @@ public class LaserPointer : MonoBehaviour
                 Button button = hit.collider.gameObject.GetComponent<Button>();
                 if (button != null)
                 {
-                    ColorBlock colorBlock = button.colors;
-                    colorBlock.normalColor = Color.green; // Change the color to green
-                    button.colors = colorBlock;
+                    if (!shape.Contains(button) && !color.Contains(button))
+                    {
+                        ColorBlock colorBlock = button.colors;
+                        colorBlock.normalColor = Color.green; // Change the color to green
+                        button.colors = colorBlock;
+                    }
                 }
 
-                if (clickStartedThisFrame)
+                if (controller.primary2DAxisClick && !hasExecuted)
                 {
-                    if (hit.collider.gameObject.name.Contains("Shape"))
+                    if (shape.Contains(button))
                     {
-                        // A shape button has been clicked, so record that a shape has been selected for the current task
-                        shapeSelected = true;
-                    }
-                    else if (hit.collider.gameObject.name.Contains("Color"))
-                    {
-                        // A color button has been clicked, so record that a color has been selected for the current task
-                        colorSelected = true;
+                        shapeSelected = button.gameObject.name;
                     }
 
-                    // Check and execute the functions of each button based on the GameObject's name
+                    if (color.Contains(button))
+                    {
+                        colorSelected = button.gameObject.name;
+                    }
+
                     CheckAndExecuteButtonFunction("NEXT_TASK", hit, clickStartedThisFrame);
                     CheckAndExecuteButtonFunction("NEXT", hit, clickStartedThisFrame);
                     CheckAndExecuteButtonFunction("PLUS", hit, clickStartedThisFrame);
                     CheckAndExecuteButtonFunction("MINUS", hit, clickStartedThisFrame);
                     CheckAndExecuteButtonFunction("PHOTO", hit, clickStartedThisFrame);
+
+                    hasExecuted = true;
                 }
+
+                lastButtonHit = button;
             }
             else
             {
@@ -171,30 +226,25 @@ public class LaserPointer : MonoBehaviour
             switch (buttonName)
             {
                 case "NEXT_TASK":
-                    if (currentTask < 3 && shapeSelected && colorSelected)
+                    if (mm.CurrentTask == modalities.TaskType.start)
                     {
-                        // Both shape and color have been selected for the current task, so move to the next task
-                        currentTask++;
-
-                        // Reset shape and color selection for the next task
-                        shapeSelected = false;
-                        colorSelected = false;
-
-                        if (currentTask == 1)
-                        {
-                            // All tasks are completed, so change the button label to "SAVE"
-                            btn_NEXT_TASK.GetComponentInChildren<TextMeshProUGUI>().text = "START";
-                        }
-                        else if (currentTask == 2)
-                        {
-                            // All tasks are completed, so change the button label to "SAVE"
-                            btn_NEXT_TASK.GetComponentInChildren<TextMeshProUGUI>().text = "NEXT TASK";
-                        }
-                        else
-                        {
-                            // There are still tasks remaining, so keep the button label as "NEXT TASK"
-                            btn_NEXT_TASK.GetComponentInChildren<TextMeshProUGUI>().text = "SAVE";
-                        }
+                        mm.CurrentTask = modalities.TaskType.t1;
+                        hasExecuted = false;
+                    }
+                    else if (mm.CurrentTask == modalities.TaskType.t1)
+                    {
+                        mm.CurrentTask = modalities.TaskType.t2;
+                        hasExecuted = false;
+                    }
+                    else if (mm.CurrentTask == modalities.TaskType.t2)
+                    {
+                        mm.CurrentTask = modalities.TaskType.t3;
+                        hasExecuted = false;
+                    }
+                    else if (mm.CurrentTask == modalities.TaskType.t3)
+                    {
+                        mm.CurrentTask = modalities.TaskType.start;
+                        hasExecuted = false;
                     }
                     break;
                 case "NEXT":
@@ -214,8 +264,34 @@ public class LaserPointer : MonoBehaviour
                     slider.value = Mathf.Max(slider.value - 1f, slider.minValue);
                     break;
                 case "PHOTO":
-                    // Perform the photo capturing and saving process
+                    // Get the texture from the source image
+                    Texture2D sourceTexture = sourceImage.texture as Texture2D;
+
+                    // Calculate the middle point of the source image
+                    int middleX = sourceTexture.width / 2;
+                    int middleY = sourceTexture.height / 2;
+
+                    // Define the size of the area to copy
+                    int size = 200;
+
+                    // Calculate the starting point to copy from
+                    int startX = middleX - size / 2;
+                    int startY = middleY - size / 2;
+
+                    // Get the pixels from the source image
+                    Color[] pixels = sourceTexture.GetPixels(startX, startY, size, size);
+
+                    // Create a new texture and set the pixels
+                    Texture2D targetTexture = new Texture2D(size, size);
+                    targetTexture.SetPixels(pixels);
+                    targetTexture.Apply();
+
+                    // Set the texture to the target image
+                    targetImage.texture = targetTexture;
+
                     break;
+
+
             }
 
             if (clickStartedThisFrame)
@@ -234,6 +310,7 @@ public class LaserPointer : MonoBehaviour
                     }
                 }
             }
+
         }
     }
 

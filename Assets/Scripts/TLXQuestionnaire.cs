@@ -22,11 +22,7 @@ public class TLXData
 }
 
 public class TLXQuestionnaire : MonoBehaviour
-{
-    public int participant_ID;
-    public int modality_ID;
-
-    public TextMeshProUGUI questionText;
+{    public TextMeshProUGUI questionText;
 
     private List<QuestionData> questions;
     private int currentQuestionIndex;
@@ -35,14 +31,13 @@ public class TLXQuestionnaire : MonoBehaviour
     public TextMeshProUGUI valueText;
     public Slider slider;
     public string folderPath;
+    public modalities m;
 
     private List<string> recordedAnswers;
     public GameObject next;
 
     private void Start()
     {
-        string folderPath = Path.Combine(Application.dataPath, $"Participants_data/participant_{participant_ID}");
-        Directory.CreateDirectory(folderPath);
         recordedAnswers = new List<string>();
         LoadQuestions();
         ShowQuestion(0);
@@ -112,10 +107,10 @@ public class TLXQuestionnaire : MonoBehaviour
 
     private void SaveAnswersToCSV()
     {
-        string folderPath = Path.Combine(Application.dataPath, $"Participants_data/participant_{participant_ID}");
+        string folderPath = Path.Combine(Application.dataPath, $"Participants_data/participant_{m.par_ID}");
         Directory.CreateDirectory(folderPath);
 
-        string fileName = $"participant_{participant_ID}_modality_{modality_ID}.csv";
+        string fileName = $"participant_{m.par_ID}_modality_{m.oredr_ID}.csv";
         string filePath = Path.Combine(folderPath, fileName);
 
         using (StreamWriter sw = new StreamWriter(filePath))

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 public class modalities : MonoBehaviour
@@ -13,6 +14,22 @@ public class modalities : MonoBehaviour
     public GameObject m2;
     public GameObject m3;
     public GameObject m4;
+
+    public int par_ID;
+    public int oredr_ID;
+
+    [System.Serializable]
+    public class ParticipantData
+    {
+        public string participantID;
+        public string orderID;
+    }
+
+    [System.Serializable]
+    public class Participant
+    {
+        public ParticipantData participant;
+    }
 
     public enum ModalityType
     {
@@ -33,6 +50,7 @@ public class modalities : MonoBehaviour
 
     public enum TaskType
     {
+        start,
         t1,
         t2,
         t3
@@ -48,19 +66,29 @@ public class modalities : MonoBehaviour
     public ModalityType CurrentModality
     {
         get { return currentModality; }
-        private set { currentModality = value; }
+        set { currentModality = value; }
     }
 
     public ModalityModel CurrentModel
     {
         get { return currentModel; }
-        private set { currentModel = value; }
+        set { currentModel = value; }
     }
 
     public TaskType CurrentTask
     {
         get { return currentTask; }
-        private set { currentTask = value; }
+        set { currentTask = value; }
+    }
+
+    private void Start()
+    {
+        string path = Path.Combine(Application.streamingAssetsPath, "Participant.json");
+        string jsonString = File.ReadAllText(path);
+        Participant data = JsonUtility.FromJson<Participant>(jsonString);
+
+        par_ID = int.Parse(data.participant.participantID);
+        oredr_ID = int.Parse(data.participant.orderID);
     }
 
     private void Update()
@@ -83,6 +111,8 @@ public class modalities : MonoBehaviour
         // Activate the objects for the specified task
         switch (task)
         {
+            case TaskType.start:
+                break;
             case TaskType.t1:
                 foreach (var obj in task1Objects)
                     obj.SetActive(true);

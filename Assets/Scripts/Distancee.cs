@@ -32,7 +32,7 @@ public class Distancee : MonoBehaviour
                 {
                     if (task.taskName == currentTask)
                     {
-                        DistanceText.text = "Distance: " + task.distance;
+                        DistanceText.text = task.distance;
                         return;
                     }
                 }
