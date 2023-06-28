@@ -38,11 +38,9 @@ namespace Telexistence
 
         // CancellationTokenSource for async operations
         private CancellationTokenSource _cancellationTokenSource;
-        private Coroutine freezeCoroutine;
 
         // Message reachability flag
         public bool messageReachability;
-        public meshKinect meshKinect;
 
         private bool isRunning = true;
 
@@ -91,14 +89,6 @@ namespace Telexistence
                 SendMessageToServer("home");
             }
         }
-
-        private IEnumerator UnfreezeMeshAfterDelay()
-        {
-            yield return new WaitForSeconds(1f);
-            // Unfreeze your mesh here
-            meshKinect.freezeMesh = false;
-        }
-
 
         IEnumerator SendDataCoroutine()
         {
@@ -285,15 +275,6 @@ namespace Telexistence
         // Function to update robot transforms based on received joint angles and position
         private void UpdateRobotTransforms(float[] jointAngles, Vector3 position, Vector3 rotation)
         {
-            meshKinect.freezeMesh = true;
-
-            // If the Coroutine is running, stop it
-            if (freezeCoroutine != null)
-            {
-                StopCoroutine(freezeCoroutine);
-            }
-
-
             if (robot.Count != jointAngles.Length)
             {
                 Debug.LogError("Robot joint count doesn't match the joint angles received.");
@@ -332,9 +313,6 @@ namespace Telexistence
             worldPosition.localPosition = new Vector3(-position.x / 1000, position.y / 1000, position.z / 1000);
             Vector3 eulerAngles = CreateQuaternionFromFanucWPR(rotation.x, rotation.y, rotation.z).eulerAngles;
             worldPosition.localEulerAngles = new Vector3(eulerAngles.x, -eulerAngles.y, -eulerAngles.z);
-
-            // Start the Coroutine to unfreeze the mesh after a delay
-            freezeCoroutine = StartCoroutine(UnfreezeMeshAfterDelay());
         }
 
         // Function to convert a Quaternion to FANUC WPR (Wrist, Pitch, Roll) angles

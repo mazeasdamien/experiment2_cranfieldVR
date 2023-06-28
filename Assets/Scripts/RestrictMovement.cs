@@ -1,6 +1,8 @@
 using Telexistence;
 using UnityEngine;
 using UnityEngine.XR;
+using System.Collections.Generic;
+using System.Collections;
 
 namespace VarjoExample
 {
@@ -10,6 +12,7 @@ namespace VarjoExample
         public Transform point2;
 
         public FanucHandler fanucHandler;
+        public meshKinect meshKinect;
 
         public Material original;
         public Material notPossible;
@@ -19,16 +22,76 @@ namespace VarjoExample
         private Renderer controllerRenderer;
         public bool isInContact;
 
-        public Hand hand;
+        private Vector3 previousPosition;
+        private Coroutine freezeCoroutine;
+        private Quaternion previousRotation;
+        public bool isRotating;
 
-    private void Start()
+        public Hand hand;
+        public bool isMoving;
+
+        private void Start()
         {
             // Get the Renderer component from the controller
             controllerRenderer = controller.GetComponent<Renderer>();
+            previousPosition = transform.position;
+            previousRotation = transform.rotation;
+        }
+
+        private IEnumerator UnfreezeMeshAfterDelay()
+        {
+            yield return new WaitForSeconds(1f);
+            // Unfreeze your mesh here
+            meshKinect.freezeMesh = false;
         }
 
         private void Update()
         {
+            // Check if the GameObject is moving
+            float movementThreshold = 0.001f; // Adjust this value as needed
+            isMoving = (transform.position - previousPosition).magnitude > movementThreshold;
+
+            // Update previous position
+            previousPosition = transform.position;
+
+            if (isMoving)
+            {
+                meshKinect.freezeMesh = true;
+
+                // If the Coroutine is running, stop it
+                if (freezeCoroutine != null)
+                {
+                    StopCoroutine(freezeCoroutine);
+                }
+            }
+            else
+            {
+                // Start the Coroutine to unfreeze the mesh after a delay
+                freezeCoroutine = StartCoroutine(UnfreezeMeshAfterDelay());
+            }
+            // Check if the GameObject is rotating
+            float rotationThreshold = 0.001f; // Adjust this value as needed
+            isRotating = Quaternion.Angle(previousRotation, transform.rotation) > rotationThreshold;
+
+            // Update previous rotation
+            previousRotation = transform.rotation;
+
+            if (isMoving || isRotating)
+            {
+                meshKinect.freezeMesh = true;
+
+                // If the Coroutine is running, stop it
+                if (freezeCoroutine != null)
+                {
+                    StopCoroutine(freezeCoroutine);
+                }
+            }
+            else
+            {
+                // Start the Coroutine to unfreeze the mesh after a delay
+                freezeCoroutine = StartCoroutine(UnfreezeMeshAfterDelay());
+            }
+
             isInContact = false;
             foreach (var h in hand.contactedInteractables)
             {
@@ -56,7 +119,7 @@ namespace VarjoExample
                 // Change the controller's material to inContact
                 controllerRenderer.material = inContact;
             }
-            else if(!isInContact)
+            else if (!isInContact)
             {
                 // Change the controller's material to the original
                 controllerRenderer.material = original;
