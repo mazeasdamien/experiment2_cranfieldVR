@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 700.20844, g: 613.8943, b: 598.188, a: 1}
+  m_IndirectSpecularColor: {r: 700.1741, g: 613.8578, b: 598.1572, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -2382,6 +2382,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   objectToMatch: {fileID: 305453096}
   referenceObject: {fileID: 623838701}
+  mk: {fileID: 1719141294}
 --- !u!1 &308609845
 GameObject:
   m_ObjectHideFlags: 0
@@ -9099,6 +9100,7 @@ MonoBehaviour:
   dmeshTempEffect: {fileID: 0}
   lastMesh: {fileID: 0}
   m: {fileID: 701209060}
+  freezeMesh: 0
 --- !u!114 &1719141295
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11106,7 +11108,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6927529895058589503}
-  m_LocalRotation: {x: -0.85985225, y: 0, z: 0, w: 0.510543}
+  m_LocalRotation: {x: -0.9423498, y: 0, z: 0, w: 0.33462945}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -11433,7 +11435,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1319812764765816093}
-  m_LocalRotation: {x: 0.3955455, y: 0, z: 0, w: 0.9184464}
+  m_LocalRotation: {x: 0.49848774, y: 0, z: 0, w: 0.86689675}
   m_LocalPosition: {x: -0.8349999, y: 0, z: 0.2500006}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -12157,7 +12159,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7544284195598295255}
-  m_LocalRotation: {x: 0, y: -0.17966075, z: 0, w: 0.98372865}
+  m_LocalRotation: {x: 0, y: -0.22750118, z: 0, w: 0.97377783}
   m_LocalPosition: {x: 0, y: 0, z: 0.7900002}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -12183,7 +12185,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 227367813274124675}
-  m_LocalRotation: {x: 0, y: 0.19166556, z: 0, w: 0.9814603}
+  m_LocalRotation: {x: 0, y: 0.23938085, z: 0, w: 0.97092575}
   m_LocalPosition: {x: -0.15, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -12199,7 +12201,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7719646980499252992}
-  m_LocalRotation: {x: 0, y: -0.76323247, z: 0, w: 0.646124}
+  m_LocalRotation: {x: 0, y: -0.6832738, z: 0, w: 0.73016226}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -12502,7 +12504,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4410349902080533998}
-  m_LocalRotation: {x: 0, y: 0, z: 0.23174791, w: 0.97277594}
+  m_LocalRotation: {x: 0, y: 0, z: 0.25966188, w: 0.9656996}
   m_LocalPosition: {x: 0, y: 0, z: 0.5250002}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -12581,7 +12583,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8664993215508626438}
-  m_LocalRotation: {x: 0.13658035, y: -0.0000000057473635, z: 0.990629, w: 0.000000044917286}
+  m_LocalRotation: {x: 0.3826835, y: 0.000000045283468, z: 0.9238795, w: 0.000000028555837}
   m_LocalPosition: {x: -0.63, y: -0.07, z: 0.8351}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -12701,11 +12703,12 @@ MonoBehaviour:
   point1: {fileID: 704367271}
   point2: {fileID: 1563607137}
   fanucHandler: {fileID: 1944717082}
-  lastValidPosition: {x: 0, y: 0, z: 0}
-  lastValidRotation: {x: 0, y: 0, z: 0, w: 0}
   original: {fileID: 2100000, guid: 7ef56034bc50e8b4fad33aef870809d9, type: 2}
   notPossible: {fileID: 2100000, guid: 5630fe79d24f45c4ea208c4fd4089df6, type: 2}
+  inContact: {fileID: 2100000, guid: 3db40fbe3a01b524c8f54d811b1df79a, type: 2}
   controller: {fileID: 121542867}
+  isInContact: 0
+  hand: {fileID: 2041956705}
 --- !u!33 &8883139356804934478
 MeshFilter:
   m_ObjectHideFlags: 0
