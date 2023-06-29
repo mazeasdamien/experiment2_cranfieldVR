@@ -17,7 +17,6 @@ namespace VarjoExample
         private FixedJoint fixedJoint = null;
         public Interactable currentInteractable;
         private Rigidbody heldObjectBody;
-        private bool ispicked;
 
         public videoKinect videoKinect;
         public FanucHandler FH;
@@ -67,7 +66,6 @@ namespace VarjoExample
 
         public void Pick()
         {
-            ispicked = true;
             currentInteractable = GetNearestInteractable();
 
             if (!currentInteractable)
@@ -91,8 +89,7 @@ namespace VarjoExample
 
         public void Drop()
         {
-            ispicked= false;
-            if (!currentInteractable)
+         if (!currentInteractable)
                 return;
                 // Detach
                 fixedJoint.connectedBody = null;

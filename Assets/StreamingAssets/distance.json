@@ -3,85 +3,208 @@
     {
       "name": "TRIAL",
       "tasks": [
+	    {
+          "taskName": "start",
+          "panelType": "instruction",
+          "displayButtons": false,
+          "mainButtonText": "START",
+          "model": "nothing"
+        },
         {
           "taskName": "t1",
-          "distance": "40 cm"
+          "distance": "40 cm",
+          "panelType": "instruction",
+          "displayButtons": true,
+          "mainButtonText": "NEXT",
+          "model": "trial"
         },
         {
           "taskName": "t2",
-          "distance": "35 cm"
+          "distance": "35 cm",
+          "panelType": "instruction",
+          "displayButtons": true,
+          "mainButtonText": "NEXT",
+          "model": "trial"
         },
         {
           "taskName": "t3",
-          "distance": "45 cm"
+          "distance": "45 cm",
+          "panelType": "instruction",
+          "displayButtons": true,
+          "mainButtonText": "FINISH",
+          "model": "trial"
         }
       ]
     },
     {
-      "name": "M1",
+      "name": "DD",
       "tasks": [
         {
+          "taskName": "start",
+          "panelType": "instruction",
+          "displayButtons": false,
+          "mainButtonText": "START",
+          "model": "nothing"
+        },
+        {
           "taskName": "t1",
-          "distance": "35 cm"
+          "distance": "35 cm",
+          "panelType": "instruction",
+          "displayButtons": true,
+          "mainButtonText": "NEXT",
+          "model": "model1"
         },
         {
           "taskName": "t2",
-          "distance": "38 cm"
+          "distance": "38 cm",
+          "panelType": "instruction",
+          "displayButtons": true,
+          "mainButtonText": "NEXT",
+          "model": "model1"
         },
         {
           "taskName": "t3",
-          "distance": "40 cm"
+          "distance": "40 cm",
+          "panelType": "instruction",
+          "displayButtons": true,
+          "mainButtonText": "FINISH",
+          "model": "model1"
+        },
+        {
+          "taskName": "questions",
+          "panelType": "questionnaire",
+          "displayButtons": false,
+          "mainButtonText": "",
+          "model": ""
         }
       ]
     },
-    {
-      "name": "M2",
+	{
+      "name": "DDD",
       "tasks": [
         {
+          "taskName": "start",
+          "panelType": "instruction",
+          "displayButtons": false,
+          "mainButtonText": "START",
+          "model": "nothing"
+        },
+        {
           "taskName": "t1",
-          "distance": "35 cm"
+          "distance": "35 cm",
+          "panelType": "instruction",
+          "displayButtons": true,
+          "mainButtonText": "NEXT",
+          "model": "model2"
         },
         {
           "taskName": "t2",
-          "distance": "42 cm"
+          "distance": "38 cm",
+          "panelType": "instruction",
+          "displayButtons": true,
+          "mainButtonText": "NEXT",
+          "model": "model2"
         },
         {
           "taskName": "t3",
-          "distance": "48 cm"
+          "distance": "40 cm",
+          "panelType": "instruction",
+          "displayButtons": true,
+          "mainButtonText": "FINISH",
+          "model": "model2"
+        },
+        {
+          "taskName": "questions",
+          "panelType": "questionnaire",
+          "displayButtons": false,
+          "mainButtonText": "",
+          "model": ""
         }
       ]
     },
-    {
-      "name": "M3",
+	{
+      "name": "AV",
       "tasks": [
         {
+          "taskName": "start",
+          "panelType": "instruction",
+          "displayButtons": false,
+          "mainButtonText": "START",
+          "model": "nothing"
+        },
+        {
           "taskName": "t1",
-          "distance": "40 cm"
+          "distance": "35 cm",
+          "panelType": "instruction",
+          "displayButtons": true,
+          "mainButtonText": "NEXT",
+          "model": "model3"
         },
         {
           "taskName": "t2",
-          "distance": "35 cm"
+          "distance": "38 cm",
+          "panelType": "instruction",
+          "displayButtons": true,
+          "mainButtonText": "NEXT",
+          "model": "model3"
         },
         {
           "taskName": "t3",
-          "distance": "45 cm"
+          "distance": "40 cm",
+          "panelType": "instruction",
+          "displayButtons": true,
+          "mainButtonText": "FINISH",
+          "model": "model3"
+        },
+        {
+          "taskName": "questions",
+          "panelType": "questionnaire",
+          "displayButtons": false,
+          "mainButtonText": "",
+          "model": ""
         }
       ]
     },
-    {
-      "name": "M4",
+	{
+      "name": "DDDDD",
       "tasks": [
         {
+          "taskName": "start",
+          "panelType": "instruction",
+          "displayButtons": false,
+          "mainButtonText": "START",
+          "model": "nothing"
+        },
+        {
           "taskName": "t1",
-          "distance": "30 cm"
+          "distance": "35 cm",
+          "panelType": "instruction",
+          "displayButtons": true,
+          "mainButtonText": "NEXT",
+          "model": "model4"
         },
         {
           "taskName": "t2",
-          "distance": "38 cm"
+          "distance": "38 cm",
+          "panelType": "instruction",
+          "displayButtons": true,
+          "mainButtonText": "NEXT",
+          "model": "model4"
         },
         {
           "taskName": "t3",
-          "distance": "40 cm"
+          "distance": "40 cm",
+          "panelType": "instruction",
+          "displayButtons": true,
+          "mainButtonText": "FINISH",
+          "model": "model4"
+        },
+        {
+          "taskName": "questions",
+          "panelType": "questionnaire",
+          "displayButtons": false,
+          "mainButtonText": "",
+          "model": ""
         }
       ]
     }

@@ -99,6 +99,7 @@ public class TLXQuestionnaire : MonoBehaviour
         }
         else
         {
+            m.NextTask();
             SaveAnswersToCSV();
             next.SetActive(false);
             questionText.text = "Questionnaire completed!";

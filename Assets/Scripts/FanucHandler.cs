@@ -28,6 +28,8 @@ namespace Telexistence
         public List<Transform> robot = new List<Transform>();
         private Vector3 initialPosition;
         private Quaternion initialRotation;
+        public float positionLerpSpeed = 2.0f;
+        public float rotationLerpSpeed = 2.0f;
 
         // Temporary variables for position and rotation
         private Vector3 tempPos = new();
@@ -41,10 +43,11 @@ namespace Telexistence
 
         // Message reachability flag
         public bool messageReachability;
-
         private bool isRunning = true;
-
         public Controller controller;
+
+        private Vector3 targetRobotPosition;
+        private Quaternion targetRobotRotation;
 
         void Start()
         {
@@ -65,6 +68,7 @@ namespace Telexistence
 
         void Update()
         {
+            LerpRobotTransform();
             // Check if F10, F11 or F12 is pressed and then send corresponding message
             if (Input.GetKeyDown(KeyCode.F1))
             {
@@ -258,12 +262,6 @@ namespace Telexistence
                     {
                         Debug.LogWarning("Operation canceled.");
                     }
-                    catch (IOException e)
-                    {
-                        Debug.LogError("I/O exception occurred while reading data from server: " + e.Message);
-                        Dispose();
-                        return;
-                    }
                     catch (Exception e)
                     {
                         Debug.LogError("Failed to read data from server: " + e.Message);
@@ -309,10 +307,19 @@ namespace Telexistence
                 robot[i].localEulerAngles = rot;
             }
 
-            // Update robot position and rotation
-            worldPosition.localPosition = new Vector3(-position.x / 1000, position.y / 1000, position.z / 1000);
+            // Update robot position and rotation target
+            targetRobotPosition = new Vector3(-position.x / 1000, position.y / 1000, position.z / 1000);
             Vector3 eulerAngles = CreateQuaternionFromFanucWPR(rotation.x, rotation.y, rotation.z).eulerAngles;
-            worldPosition.localEulerAngles = new Vector3(eulerAngles.x, -eulerAngles.y, -eulerAngles.z);
+            targetRobotRotation = Quaternion.Euler(eulerAngles.x, -eulerAngles.y, -eulerAngles.z);
+        }
+
+        private void LerpRobotTransform()
+        {
+            // Lerp position
+            worldPosition.localPosition = Vector3.Lerp(worldPosition.localPosition, targetRobotPosition, Time.deltaTime * positionLerpSpeed);
+
+            // Slerp rotation
+            worldPosition.localRotation = Quaternion.Slerp(worldPosition.localRotation, targetRobotRotation, Time.deltaTime * rotationLerpSpeed);
         }
 
         // Function to convert a Quaternion to FANUC WPR (Wrist, Pitch, Roll) angles
