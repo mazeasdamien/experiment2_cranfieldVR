@@ -258,10 +258,6 @@ namespace Telexistence
                             }
                         }
                     }
-                    catch (OperationCanceledException)
-                    {
-                        Debug.LogWarning("Operation canceled.");
-                    }
                     catch (Exception e)
                     {
                         Debug.LogError("Failed to read data from server: " + e.Message);

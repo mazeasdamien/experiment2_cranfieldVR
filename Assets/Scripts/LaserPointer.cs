@@ -4,6 +4,7 @@ using UnityEngine.UI;
 using VarjoExample;
 using Telexistence;
 using System.Collections.Generic;
+using System.IO;
 
 public class LaserPointer : MonoBehaviour
 {
@@ -23,7 +24,7 @@ public class LaserPointer : MonoBehaviour
     public TLXQuestionnaire tLX;
     public modalities mm;
     private bool nextButtonCooldown = false;
-    public float nextButtonCooldownDuration = 2f;
+    public float nextButtonCooldownDuration = 0.5f;
     private float nextButtonCooldownTimer = 0f;
     public Button btn_PHOTO;
     public RawImage sourceImage;
@@ -31,6 +32,7 @@ public class LaserPointer : MonoBehaviour
     private bool buttonClicked = false;
     private bool buttonClickedQuestionnaire = false;
     private bool photoTaken = false;
+    public meshKinect mk;
 
     void Start()
     {
@@ -153,7 +155,25 @@ public class LaserPointer : MonoBehaviour
                                 if (shapeSelected != null && colorSelected != null)
                                 {
                                     if (!buttonClicked)
-                                    {
+                                    { 
+                                        if (mm.CurrentModality != modalities.ModalityType.TRIAL)
+                                        {
+                                            if (mm.CurrentTask == modalities.TaskType.t1 || mm.CurrentTask == modalities.TaskType.t2 || mm.CurrentTask == modalities.TaskType.t3)
+                                            {
+                                                Texture2D targetTexture1 = targetImage.texture as Texture2D;
+                                                if (targetTexture1 != null)
+                                                {
+                                                    byte[] bytes = targetTexture1.EncodeToJPG();
+                                                    string filename = mm.par_ID + "_" + mm.CurrentModality + "_" + mm.CurrentTask + "_" + mk.midDepthInCm.ToString() + "cm" + ".jpg";
+                                                    string folderPath = Path.Combine(Application.dataPath, "Participants_data", $"participant_{mm.par_ID}");
+                                                    Directory.CreateDirectory(folderPath);
+
+                                                    string filePath = Path.Combine(folderPath, filename);
+                                                    File.WriteAllBytes(filePath, bytes);
+                                                }
+                                            }
+                                        }
+
                                         mm.NextTask();
                                         shapeSelected = null;
                                         colorSelected = null;
@@ -217,6 +237,11 @@ public class LaserPointer : MonoBehaviour
             lineRenderer.SetPosition(0, transform.position);
             lineRenderer.SetPosition(1, transform.position);
         }
+    }
+
+    public string GetShapeColorPair()
+    {
+        return $"{shapeSelected},{colorSelected}";
     }
 
     public void ResetTargetTexture()

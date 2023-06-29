@@ -18,7 +18,7 @@ namespace Telexistence
         int depthWidth;
         int depthHeight;
         int num;
-        public Mesh mesh;
+        private Mesh mesh;
         Vector3[] vertices;
         Color32[] colors;
         int[] indeces;
@@ -32,14 +32,13 @@ namespace Telexistence
         private GameObject instantiatedText = null;
         public float textsize;
 
-        public VisualEffect dmeshTempEffect;
         private bool hasAppliedLastMesh = false;
-        public Mesh lastMesh;
         public modalities m;
 
         private BGRA[] colorArray;
         private Short3[] pointCloud;
         private ushort[] depthData;
+        public int midDepthInCm;
 
         private void OnApplicationQuit()
         {
@@ -59,7 +58,7 @@ namespace Telexistence
         void Update()
         {
 
-            int midDepthInCm = Mathf.CeilToInt(midDepth / 10.0f);
+            midDepthInCm = Mathf.CeilToInt(midDepth / 10.0f);
             int prevDepthInCm = Mathf.CeilToInt(prevDepth / 10.0f);
 
             if (midDepthInCm == 0)
@@ -101,15 +100,6 @@ namespace Telexistence
                 instantiatedText.transform.Rotate(0, 180, 0);
             }
             prevDepth = midDepth;
-
-            // Apply the last mesh to the dmeshTempEffect VFX when the robot starts moving
-            if (isRobotMoving && !hasAppliedLastMesh)
-            {
-                dmeshTempEffect.SetMesh("RemoteData", lastMesh);
-                dmeshTempEffect.transform.position = effect.transform.position;
-                dmeshTempEffect.transform.rotation = effect.transform.rotation;
-                hasAppliedLastMesh = true;
-            }
         }
 
 
@@ -237,6 +227,8 @@ namespace Telexistence
 
                 mesh.triangles = indeces;
                 mesh.RecalculateBounds();
+
+                effect.SetMesh("RemoteData", mesh);
                 yield return null;
             }
         }

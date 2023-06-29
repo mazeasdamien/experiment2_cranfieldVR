@@ -36,6 +36,11 @@ public class TLXQuestionnaire : MonoBehaviour
     private List<string> recordedAnswers;
     public GameObject next;
 
+    public List<string> GetAnswers()
+    {
+        return recordedAnswers;
+    }
+
     private void Start()
     {
         recordedAnswers = new List<string>();
@@ -66,6 +71,8 @@ public class TLXQuestionnaire : MonoBehaviour
             return;
         }
 
+        currentQuestionIndex = questionIndex;  // Add this line
+
         QuestionData questionData = questions[questionIndex];
         questionText.text = questionData.question;
         left_text.text = questionData.responses[0];
@@ -75,8 +82,8 @@ public class TLXQuestionnaire : MonoBehaviour
         if (questionData.max_value_slider == 21)
         { slider.value = 11; }
         else { slider.value = 3; }
-
     }
+
 
     public void RecordAnswer()
     {
@@ -87,45 +94,43 @@ public class TLXQuestionnaire : MonoBehaviour
         }
     }
 
+    public void ResetQuestionnaire()
+    {
+        // Record the answer for the current question before resetting
+        RecordAnswer();
+
+        // Reset the current question index and clear the recorded answers
+        currentQuestionIndex = 0;
+        recordedAnswers.Clear();
+
+        // Show the first question
+        ShowQuestion(0);
+    }
 
     public void NextQuestion()
     {
-        RecordAnswer();
-
-        currentQuestionIndex++;
-        if (currentQuestionIndex < questions.Count)
+        // Check if there are more questions
+        if (currentQuestionIndex < questions.Count - 1)
         {
+            // Record the answer for the current question
+            RecordAnswer();
+
+            // Move to the next question
+            currentQuestionIndex++;
             ShowQuestion(currentQuestionIndex);
         }
         else
         {
+            // Record the answer for the last question
+            RecordAnswer();
+
+            // Reset the current question index and move on to the next task
+            currentQuestionIndex = 0;
             m.NextTask();
-            SaveAnswersToCSV();
-            next.SetActive(false);
-            questionText.text = "Questionnaire completed!";
+
+            // Show the first question
+            ShowQuestion(0);
         }
     }
 
-    private void SaveAnswersToCSV()
-    {
-        string folderPath = Path.Combine(Application.dataPath, $"Participants_data/participant_{m.par_ID}");
-        Directory.CreateDirectory(folderPath);
-
-        string fileName = $"participant_{m.par_ID}_modality_{m.oredr_ID}.csv";
-        string filePath = Path.Combine(folderPath, fileName);
-
-        using (StreamWriter sw = new StreamWriter(filePath))
-        {
-            sw.WriteLine("Question ID,Answer");
-
-            for (int i = 0; i < recordedAnswers.Count; i++)
-            {
-                if (i < recordedAnswers.Count)
-                {
-                    string line = $"{questions[i].question_id},{recordedAnswers[i]}";
-                    sw.WriteLine(line);
-                }
-            }
-        }
-    }
 }

@@ -2380,6 +2380,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f18fded2fe1c5a44aa2e2eac915a0008, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m: {fileID: 701209060}
+  outpose: {fileID: 683941185}
   objectToMatch: {fileID: 305453096}
   referenceObject: {fileID: 623838701}
   positionLerpSpeed: 8
@@ -3881,10 +3883,11 @@ MonoBehaviour:
   controller: {fileID: 2041956709}
   tLX: {fileID: 1107396762}
   mm: {fileID: 701209060}
-  nextButtonCooldownDuration: 5
+  nextButtonCooldownDuration: 1
   btn_PHOTO: {fileID: 1252072983}
   sourceImage: {fileID: 1249565602}
   targetImage: {fileID: 1684749978}
+  mk: {fileID: 1719141294}
 --- !u!120 &565698857
 LineRenderer:
   m_ObjectHideFlags: 0
@@ -4533,6 +4536,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 683180349}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &683941185
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 683941186}
+  m_Layer: 0
+  m_Name: outpose mesh
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &683941186
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 683941185}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -6.56, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 15
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &690041887
 GameObject:
   m_ObjectHideFlags: 0
@@ -4843,7 +4877,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a36720eef37e0f42abf55295a6c68a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  feed2D: {fileID: 2120266794}
+  feed2D: {fileID: 1249565600}
   usePT: 0
   useMarker: 0
   DistanceText: {fileID: 1954920275}
@@ -4859,13 +4893,14 @@ MonoBehaviour:
   - {fileID: 1183921901}
   - {fileID: 38824748}
   toHide:
-  - {fileID: 2120266794}
+  - {fileID: 1249565600}
   - {fileID: 7660456638893252151}
   - {fileID: 183359415}
   - {fileID: 305453096}
   panel_instruction: {fileID: 458965938}
   panel_questionnaire: {fileID: 1107396761}
   photopanel: {fileID: 1252072980}
+  tlxQuestionnaire: {fileID: 1107396762}
   trial: {fileID: 659356945}
   m1: {fileID: 311955504}
   m2: {fileID: 1327866054}
@@ -4873,10 +4908,9 @@ MonoBehaviour:
   m4: {fileID: 618512102}
   info: {fileID: 1307204534}
   pt: {fileID: 305453098}
+  laserPointer: {fileID: 565698856}
   par_ID: 0
-  oredr_ID: 0
-  empty: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
-  mk: {fileID: 1719141294}
+  modalities_order: 0
   currentModality: 0
   currentModel: 0
   currentTask: 0
@@ -8261,7 +8295,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0, g: 0.8888886, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -9133,7 +9167,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0, g: 0.94070315, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -9433,16 +9467,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isRobotMoving: 0
-  mesh: {fileID: 0}
   effect: {fileID: 305453098}
   fanucHandler: {fileID: 1944717082}
   maxDistance: 5
   lineCreator: {fileID: 701209058}
   textPrefab: {fileID: 4981007854273414698, guid: 0d4a5c356cb1a124ba7c014a6bb00112, type: 3}
   textsize: 100
-  dmeshTempEffect: {fileID: 0}
-  lastMesh: {fileID: 0}
   m: {fileID: 701209060}
+  midDepthInCm: 0
 --- !u!114 &1719141295
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11524,7 +11556,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6927529895058589503}
-  m_LocalRotation: {x: -0.9426415, y: 0, z: 0, w: 0.3338069}
+  m_LocalRotation: {x: -0.9423498, y: 0, z: 0, w: 0.33462945}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -12575,7 +12607,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7544284195598295255}
-  m_LocalRotation: {x: 0, y: -0.22750118, z: 0, w: 0.97377783}
+  m_LocalRotation: {x: 0, y: -0.22665133, z: 0, w: 0.973976}
   m_LocalPosition: {x: 0, y: 0, z: 0.7900002}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -12601,7 +12633,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 227367813274124675}
-  m_LocalRotation: {x: 0, y: 0.23938085, z: 0, w: 0.97092575}
+  m_LocalRotation: {x: 0, y: 0.23853347, z: 0, w: 0.9711343}
   m_LocalPosition: {x: -0.15, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
