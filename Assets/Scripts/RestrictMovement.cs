@@ -12,7 +12,6 @@ namespace VarjoExample
         public Transform point2;
 
         public FanucHandler fanucHandler;
-        public meshKinect meshKinect;
 
         public Material original;
         public Material notPossible;
@@ -38,13 +37,6 @@ namespace VarjoExample
             previousRotation = transform.rotation;
         }
 
-        private IEnumerator UnfreezeMeshAfterDelay()
-        {
-            yield return new WaitForSeconds(1f);
-            // Unfreeze your mesh here
-            meshKinect.freezeMesh = false;
-        }
-
         private void Update()
         {
             // Check if the GameObject is moving
@@ -54,21 +46,6 @@ namespace VarjoExample
             // Update previous position
             previousPosition = transform.position;
 
-            if (isMoving)
-            {
-                meshKinect.freezeMesh = true;
-
-                // If the Coroutine is running, stop it
-                if (freezeCoroutine != null)
-                {
-                    StopCoroutine(freezeCoroutine);
-                }
-            }
-            else
-            {
-                // Start the Coroutine to unfreeze the mesh after a delay
-                freezeCoroutine = StartCoroutine(UnfreezeMeshAfterDelay());
-            }
             // Check if the GameObject is rotating
             float rotationThreshold = 0.001f; // Adjust this value as needed
             isRotating = Quaternion.Angle(previousRotation, transform.rotation) > rotationThreshold;
@@ -76,21 +53,6 @@ namespace VarjoExample
             // Update previous rotation
             previousRotation = transform.rotation;
 
-            if (isMoving || isRotating)
-            {
-                meshKinect.freezeMesh = true;
-
-                // If the Coroutine is running, stop it
-                if (freezeCoroutine != null)
-                {
-                    StopCoroutine(freezeCoroutine);
-                }
-            }
-            else
-            {
-                // Start the Coroutine to unfreeze the mesh after a delay
-                freezeCoroutine = StartCoroutine(UnfreezeMeshAfterDelay());
-            }
 
             isInContact = false;
             foreach (var h in hand.contactedInteractables)

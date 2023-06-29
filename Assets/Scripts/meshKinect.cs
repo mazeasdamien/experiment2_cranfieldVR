@@ -43,7 +43,6 @@ namespace Telexistence
 
         private int prevDisplayedDepth = -1;
 
-        public bool freezeMesh;
 
         private void OnDestroy()
         {
@@ -129,7 +128,7 @@ namespace Telexistence
                 hasAppliedLastMesh = true;
             }
 
-            if (freezeMesh && !hasAppliedLastMesh)
+            if (!hasAppliedLastMesh)
             {
                 lastMesh = mesh;
                 hasAppliedLastMesh = true;
@@ -186,76 +185,70 @@ namespace Telexistence
         {
             while (true)
             {
-
                 Capture capture = device.GetCapture();
                 using (Microsoft.Azure.Kinect.Sensor.Image modifiedColor = transformation.ColorImageToDepthCamera(capture))
                 {
+                    colorArray = modifiedColor.GetPixels<BGRA>().ToArray();
+
+                    using (Microsoft.Azure.Kinect.Sensor.Image cloudImage = transformation.DepthImageToPointCloud(capture.Depth))
                     {
-                        colorArray = modifiedColor.GetPixels<BGRA>().ToArray();
+                        pointCloud = cloudImage.GetPixels<Short3>().ToArray();
 
-                        using (Microsoft.Azure.Kinect.Sensor.Image cloudImage = transformation.DepthImageToPointCloud(capture.Depth))
+                        using (Microsoft.Azure.Kinect.Sensor.Image depthImage = capture.Depth)
                         {
-                            pointCloud = cloudImage.GetPixels<Short3>().ToArray();
-
-                            using (Microsoft.Azure.Kinect.Sensor.Image depthImage = capture.Depth)
+                            if (depthImage != null)
                             {
-                                if (depthImage != null)
-                                {
-                                    int centerIndex = (depthImage.WidthPixels / 2) + (depthImage.HeightPixels / 2) * depthImage.WidthPixels;
-                                    depthData = depthImage.GetPixels<ushort>().ToArray();
-                                    midDepth = depthData[centerIndex];
-                                }
+                                int centerIndex = (depthImage.WidthPixels / 2) + (depthImage.HeightPixels / 2) * depthImage.WidthPixels;
+                                depthData = depthImage.GetPixels<ushort>().ToArray();
+                                midDepth = depthData[centerIndex];
                             }
                         }
                     }
-                    if (!freezeMesh)
+                    int triangleIndex = 0;
+                    int pointIndex = 0;
+                    int topLeft, topRight, bottomLeft, bottomRight;
+                    int tl, tr, bl, br;
+                    for (int y = 0; y < depthHeight; y++)
                     {
-                        int triangleIndex = 0;
-                        int pointIndex = 0;
-                        int topLeft, topRight, bottomLeft, bottomRight;
-                        int tl, tr, bl, br;
-                        for (int y = 0; y < depthHeight; y++)
+                        for (int x = 0; x < depthWidth; x++)
                         {
-                            for (int x = 0; x < depthWidth; x++)
+                            float xVal = pointCloud[pointIndex].X * 0.001f;
+                            float yVal = -pointCloud[pointIndex].Y * 0.001f;
+                            float zVal = pointCloud[pointIndex].Z * 0.001f;
+
+                            if (Mathf.Sqrt(xVal * xVal + yVal * yVal + zVal * zVal) <= maxDistance)
                             {
-                                float xVal = pointCloud[pointIndex].X * 0.001f;
-                                float yVal = -pointCloud[pointIndex].Y * 0.001f;
-                                float zVal = pointCloud[pointIndex].Z * 0.001f;
+                                vertices[pointIndex].x = xVal;
+                                vertices[pointIndex].y = yVal;
+                                vertices[pointIndex].z = zVal;
 
-                                if (Mathf.Sqrt(xVal * xVal + yVal * yVal + zVal * zVal) <= maxDistance)
+                                colors[pointIndex].a = 255;
+                                colors[pointIndex].b = colorArray[pointIndex].B;
+                                colors[pointIndex].g = colorArray[pointIndex].G;
+                                colors[pointIndex].r = colorArray[pointIndex].R;
+
+                                if (x != (depthWidth - 1) && y != (depthHeight - 1))
                                 {
-                                    vertices[pointIndex].x = xVal;
-                                    vertices[pointIndex].y = yVal;
-                                    vertices[pointIndex].z = zVal;
+                                    topLeft = pointIndex;
+                                    topRight = topLeft + 1;
+                                    bottomLeft = topLeft + depthWidth;
+                                    bottomRight = bottomLeft + 1;
+                                    tl = pointCloud[topLeft].Z;
+                                    tr = pointCloud[topRight].Z;
+                                    bl = pointCloud[bottomLeft].Z;
+                                    br = pointCloud[bottomRight].Z;
 
-                                    colors[pointIndex].a = 255;
-                                    colors[pointIndex].b = colorArray[pointIndex].B;
-                                    colors[pointIndex].g = colorArray[pointIndex].G;
-                                    colors[pointIndex].r = colorArray[pointIndex].R;
+                                    indeces[triangleIndex++] = topLeft;
+                                    indeces[triangleIndex++] = topRight;
+                                    indeces[triangleIndex++] = bottomLeft;
 
-                                    if (x != (depthWidth - 1) && y != (depthHeight - 1))
-                                    {
-                                        topLeft = pointIndex;
-                                        topRight = topLeft + 1;
-                                        bottomLeft = topLeft + depthWidth;
-                                        bottomRight = bottomLeft + 1;
-                                        tl = pointCloud[topLeft].Z;
-                                        tr = pointCloud[topRight].Z;
-                                        bl = pointCloud[bottomLeft].Z;
-                                        br = pointCloud[bottomRight].Z;
-
-                                        indeces[triangleIndex++] = topLeft;
-                                        indeces[triangleIndex++] = topRight;
-                                        indeces[triangleIndex++] = bottomLeft;
-
-                                        indeces[triangleIndex++] = bottomLeft;
-                                        indeces[triangleIndex++] = topRight;
-                                        indeces[triangleIndex++] = bottomRight;
-                                    }
+                                    indeces[triangleIndex++] = bottomLeft;
+                                    indeces[triangleIndex++] = topRight;
+                                    indeces[triangleIndex++] = bottomRight;
                                 }
-
-                                pointIndex++;
                             }
+
+                            pointIndex++;
                         }
 
                         mesh.Clear();
@@ -269,11 +262,9 @@ namespace Telexistence
                         {
                             effect.SetMesh("RemoteData", mesh);
                         }
-                        yield return new WaitForSeconds(0);
+                        yield return new WaitForSeconds(0.1f);
                     }
-                    yield return new WaitForSeconds(0);
                 }
-                yield return null;
             }
         }
     }
