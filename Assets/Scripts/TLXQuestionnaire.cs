@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.IO;
+using System;
 
 [System.Serializable]
 public class QuestionData
@@ -35,11 +36,6 @@ public class TLXQuestionnaire : MonoBehaviour
 
     private List<string> recordedAnswers;
     public GameObject next;
-
-    public List<string> GetAnswers()
-    {
-        return recordedAnswers;
-    }
 
     private void Start()
     {
@@ -124,12 +120,29 @@ public class TLXQuestionnaire : MonoBehaviour
             // Record the answer for the last question
             RecordAnswer();
 
+            string folderPath = Path.Combine(Application.dataPath, "Participants_data", $"participant_{m.par_ID}");
+            Directory.CreateDirectory(folderPath);
+            string fileName = $"participant_{m.par_ID}_data.csv";
+            string filePath = Path.Combine(folderPath, fileName);
+            TimeSpan elapsed = m.varjoDateTime.Value - m.startTaskDateTime.Value;
+
+            using (StreamWriter sw = new StreamWriter(filePath, true))
+            {
+                sw.WriteLine($"TLX1,TLX2,TLX3,TLX4,TLX5,TLX6,SUS1,SUS2,SUS3,SUS4,SUS5,SUS6,SUS7,SUS8,SUS9,SUS10");
+                // Writing the recordedAnswers
+                foreach (string answer in recordedAnswers)
+                {
+                    sw.Write($"{answer},");
+                }
+                sw.WriteLine();
+            }
+
+
             // Reset the current question index and move on to the next task
             currentQuestionIndex = 0;
             m.NextTask();
 
-            // Show the first question
-            ShowQuestion(0);
+            ResetQuestionnaire();
         }
     }
 

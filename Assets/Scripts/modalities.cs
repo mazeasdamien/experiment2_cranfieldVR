@@ -6,7 +6,8 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using UnityEngine.VFX;
-using Telexistence;
+using Varjo;
+using Varjo.XR;
 
 public class modalities : MonoBehaviour
 {
@@ -27,23 +28,14 @@ public class modalities : MonoBehaviour
     public GameObject m2;
     public GameObject m3;
     public GameObject m4;
-
     public TextMeshProUGUI info;
     public VisualEffect pt;
     public LaserPointer laserPointer;
-
     public int par_ID;
     public int modalities_order;
 
-    public Dictionary<string, float> taskTimes = new Dictionary<string, float>();
-    public Dictionary<string, float> modalityTimes = new Dictionary<string, float>();
-
-    private float taskStartTime;
-    private float modalityStartTime;
-
-    private float checkpointStartTime;
-    private float totalStartTime;
-
+    public DateTime? varjoDateTime;
+    public DateTime? startTaskDateTime;
 
     [System.Serializable]
     public class ParticipantData
@@ -139,27 +131,16 @@ public class modalities : MonoBehaviour
         public Modality[] modalities;
     }
 
-    public void Checkpoint()
-    {
-        float checkpointTime = Time.time - checkpointStartTime;
-        taskTimes[$"checkpoint_{checkpointStartTime}"] = checkpointTime;
-        checkpointStartTime = Time.time;
-    }
-
     private void Start()
     {
         string path = Path.Combine(Application.streamingAssetsPath, "Participant.json");
         string jsonString = File.ReadAllText(path);
         Participant data = JsonUtility.FromJson<Participant>(jsonString);
-
         string path1 = Path.Combine(Application.streamingAssetsPath, "distance.json");
         string jsonString1 = File.ReadAllText(path1);
         experimentFlow = JsonUtility.FromJson<ExperimentFlow>(jsonString1);
-
         par_ID = int.Parse(data.participant.participantID);
         modalities_order = int.Parse(data.participant.orderID);
-
-        // Re-order modalities
         switch (modalities_order)
         {
             case 1:
@@ -199,58 +180,36 @@ public class modalities : MonoBehaviour
             };
                 break;
         }
-
-        currentModalityIndex = 0; // Start from the first modality
-        currentTaskIndex = 0; // Start from the first task
-
+        currentModalityIndex = 0;
+        currentTaskIndex = 0;
         SetCurrentModalityAndTask();
+    }
 
-        if (CurrentModality != ModalityType.TRIAL)
+    private void SaveDataToCSV(DateTime? varjoDateTime)
+    {
+        string folderPath = Path.Combine(Application.dataPath, "Participants_data", $"participant_{par_ID}");
+        Directory.CreateDirectory(folderPath);
+        string fileName = $"participant_{par_ID}_data.csv";
+        string filePath = Path.Combine(folderPath, fileName);
+
+        using (StreamWriter sw = new StreamWriter(filePath, true))
         {
-            checkpointStartTime = Time.time;
-            totalStartTime = Time.time;
+            string nextModalityName = experimentFlow.modalities[currentModalityIndex + 1].name;
+            sw.WriteLine($"{varjoDateTime?.ToString()},{nextModalityName}");
         }
     }
 
-    private void SaveDataToCSV(float taskTime, float modalityTime, float totalTime)
+    private void SaveTaskToCSV(string shapeSelected, string colorSelected, DateTime? varjoDateTime)
     {
-        string folderPath = Path.Combine(Application.dataPath, $"Participants_data");
+        string folderPath = Path.Combine(Application.dataPath, "Participants_data", $"participant_{par_ID}");
         Directory.CreateDirectory(folderPath);
-
-        string fileName = $"participant_data.csv";
+        string fileName = $"participant_{par_ID}_data.csv";
         string filePath = Path.Combine(folderPath, fileName);
+        TimeSpan elapsed = varjoDateTime.Value - startTaskDateTime.Value;
 
-        using (StreamWriter sw = new StreamWriter(filePath, true))  // note 'true' to append
+        using (StreamWriter sw = new StreamWriter(filePath, true))
         {
-            // Write participant ID and modalities order
-            sw.Write($"{par_ID},{modalities_order},");
-
-            // For each modality, write shape/color pair
-            foreach (Modality modality in experimentFlow.modalities)
-            {
-                if (modality.name != "TRIAL")
-                {
-                    string shapeColorPair = laserPointer.GetShapeColorPair();
-                    sw.Write($"{shapeColorPair},");
-                }
-            }
-
-            // Write responses from questionnaire
-            List<string> answers = tlxQuestionnaire.GetAnswers();
-            for (int i = 0; i < answers.Count; i++)
-            {
-                sw.Write($"{answers[i]}");
-                if (i < answers.Count - 1)  // add comma except for last item
-                {
-                    sw.Write(",");
-                }
-            }
-
-            // Write task time, modality time and total time
-            sw.Write($"{taskTime},{modalityTime},{totalTime}");
-
-            // Write a new line
-            sw.WriteLine();
+            sw.WriteLine($"{varjoDateTime?.ToString()},{shapeSelected}/{colorSelected},{elapsed.TotalSeconds}");
         }
     }
 
@@ -269,33 +228,19 @@ public class modalities : MonoBehaviour
 
     private void SetCurrentModalityAndTask()
     {
-        // Get the current modality and task
         Modality currentModality = experimentFlow.modalities[currentModalityIndex];
         Task currentTask = currentModality.tasks[currentTaskIndex];
 
-        // Record start times
-        taskStartTime = Time.time;
-        if (currentTaskIndex == 0)  // If it's the first task in a modality, record modality start time
-        {
-            modalityStartTime = Time.time;
-        }
-
-        // Set the modality and task
         Enum.TryParse(currentModality.name, out ModalityType modalityType);
         CurrentModality = modalityType;
         Enum.TryParse(currentTask.taskName, out TaskType taskType);
         CurrentTask = taskType;
-        // Set the model
         Enum.TryParse(currentTask.model, out ModalityModel model);
         CurrentModel = model;
 
         info.text = currentModality.name + " " + currentTask.taskName;
-
-        // Set param
         DistanceText.text = currentTask.distance;
         btn_NEXT_TASK.GetComponentInChildren<TextMeshProUGUI>().text = currentTask.mainButtonText;
-
-        // Set buttons display state
         foreach (var button in shape)
         {
             button.gameObject.SetActive(currentTask.displayButtons);
@@ -304,8 +249,6 @@ public class modalities : MonoBehaviour
         {
             button.gameObject.SetActive(currentTask.displayButtons);
         }
-
-        // Set panel display state
         switch (currentTask.panelType)
         {
             case "instruction":
@@ -331,21 +274,14 @@ public class modalities : MonoBehaviour
 
     public void NextTask()
     {
-        // Record the time spent on the current task
-        float taskEndTime = Time.time;
-        float taskDuration = taskEndTime - taskStartTime;
-        Task currentTask = experimentFlow.modalities[currentModalityIndex].tasks[currentTaskIndex];
-        taskTimes[currentTask.taskName] = taskDuration;
-
-        // If it's the t3 task, also record the modality time and reset modality start time
-        if (currentTask.taskName == "t3")
+        if (CurrentTask == TaskType.start)
         {
-            float modalityEndTime = Time.time;
-            float modalityDuration = modalityEndTime - modalityStartTime;
-            Modality currentModality = experimentFlow.modalities[currentModalityIndex];
-            modalityTimes[currentModality.name] = modalityDuration;
-
-            modalityStartTime = Time.time; // Reset the modality start time
+            startTaskDateTime = varjoDateTime;
+        }
+        // If it is task t1, t2 or t3, save the laserPointer shape/color and varjoDateTime to CSV.
+        if ((CurrentTask == TaskType.t1 || CurrentTask == TaskType.t2 || CurrentTask == TaskType.t3) && CurrentModality != ModalityType.TRIAL)
+        {
+            SaveTaskToCSV(laserPointer.shapeSelected, laserPointer.colorSelected, varjoDateTime);
         }
 
         currentTaskIndex++;
@@ -353,17 +289,16 @@ public class modalities : MonoBehaviour
         {
             Modality currentModality = experimentFlow.modalities[currentModalityIndex];
 
-            // Reset questionnaire when a modality ends, except for "TRIAL"
+            // Save the modality change and questionnaire results to CSV.
+            SaveDataToCSV(varjoDateTime);
             if (currentModality.name != "TRIAL")
             {
                 tlxQuestionnaire.ResetQuestionnaire();
             }
             currentTaskIndex = 0;
-
-            // Now, after all the checks, we can increment currentModalityIndex safely.
             currentModalityIndex++;
-        }
 
+        }
         if (currentModalityIndex >= experimentFlow.modalities.Length)
         {
             StartCoroutine(EndExperiment());
@@ -372,33 +307,13 @@ public class modalities : MonoBehaviour
         {
             SetCurrentModalityAndTask();
         }
-
     }
+
 
     IEnumerator EndExperiment()
     {
-        // Check if currentModalityIndex is within the bounds of the array
-        if (currentModalityIndex < experimentFlow.modalities.Length)
-        {
-            // Record the time spent on the current modality
-            float modalityEndTime = Time.time;
-            float modalityDuration = modalityEndTime - modalityStartTime;
-            Modality currentModality = experimentFlow.modalities[currentModalityIndex];
-            modalityTimes[currentModality.name] = modalityDuration;
-        }
-
-        // Calculate total experiment time
-        float totalExperimentTime = Time.time - totalStartTime;
-
-        // Save to CSV
-        SaveDataToCSV(0, 0, totalExperimentTime);
-
-        // Wait for 5 seconds
         yield return new WaitForSeconds(5f);
-
-        // Quit application
 #if UNITY_EDITOR
-        // If running in Unity editor
         UnityEditor.EditorApplication.isPlaying = false;
 #else
 // If running in build
@@ -406,10 +321,12 @@ Application.Quit();
 #endif
     }
 
-
-
     private void Update()
     {
+        long varjoTimestamp = VarjoTime.GetVarjoTimestamp();
+        varjoDateTime = VarjoTime.ConvertVarjoTimestampToDateTime(varjoTimestamp);
+
+
         SetModality(CurrentModality);
         SetModel(CurrentModel);
         SetTask(CurrentTask);
@@ -417,7 +334,6 @@ Application.Quit();
 
     public void SetTask(TaskType task)
     {
-        // Deactivate all objects
         foreach (var obj in task1Objects)
             obj.SetActive(false);
         foreach (var obj in task2Objects)
@@ -425,8 +341,6 @@ Application.Quit();
         foreach (var obj in task3Objects)
             obj.SetActive(false);
         photopanel.SetActive(true);
-
-        // Activate the objects for the specified task
         switch (task)
         {
             case TaskType.start:
@@ -447,15 +361,11 @@ Application.Quit();
             case TaskType.questions:
                 break;
         }
-
-        // Update the current task
         CurrentTask = task;
     }
 
     public void SetModel(ModalityModel model)
     {
-
-        // Activate the specified modality
         switch (model)
         {
             case ModalityModel.trial:
@@ -501,14 +411,11 @@ Application.Quit();
                 m4.SetActive(false);
                 break;
         }
-
-        // Update the current modality
         CurrentModel = model;
     }
 
     public void SetModality(ModalityType modality)
     {
-        // Activate the specified modality
         switch (modality)
         {
             case ModalityType.TRIAL:
@@ -537,8 +444,6 @@ Application.Quit();
                 usePT = true;
                 break;
         }
-
-        // Update the current modality
         CurrentModality = modality;
     }
 }
