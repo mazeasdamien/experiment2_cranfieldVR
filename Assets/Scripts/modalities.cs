@@ -8,6 +8,7 @@ using UnityEngine.UI;
 using UnityEngine.VFX;
 using Varjo;
 using Varjo.XR;
+using Telexistence;
 
 public class modalities : MonoBehaviour
 {
@@ -31,6 +32,7 @@ public class modalities : MonoBehaviour
     public TextMeshProUGUI info;
     public VisualEffect pt;
     public LaserPointer laserPointer;
+    public FanucHandler fanucHandler;
     public int par_ID;
     public int modalities_order;
 
@@ -277,6 +279,13 @@ public class modalities : MonoBehaviour
         if (CurrentTask == TaskType.start)
         {
             startTaskDateTime = varjoDateTime;
+        }
+
+        if (CurrentTask == TaskType.start || CurrentTask == TaskType.t1 || CurrentTask == TaskType.t2)
+        {
+            fanucHandler.kinect_cursor.position = fanucHandler.initialPosition;
+            fanucHandler.kinect_cursor.rotation = fanucHandler.initialRotation;
+            fanucHandler.SendMessageToServer("home");
         }
         // If it is task t1, t2 or t3, save the laserPointer shape/color and varjoDateTime to CSV.
         if ((CurrentTask == TaskType.t1 || CurrentTask == TaskType.t2 || CurrentTask == TaskType.t3) && CurrentModality != ModalityType.TRIAL)

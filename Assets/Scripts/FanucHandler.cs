@@ -7,6 +7,9 @@ using System.Collections;
 using System.Threading;
 using System.IO;
 using VarjoExample;
+using TMPro;
+using Varjo.XR;
+using static Varjo.XR.VarjoEyeTracking;
 
 namespace Telexistence
 {
@@ -26,8 +29,8 @@ namespace Telexistence
         public Transform kinect_cursor;
         public Transform worldPosition;
         public List<Transform> robot = new List<Transform>();
-        private Vector3 initialPosition;
-        private Quaternion initialRotation;
+        public Vector3 initialPosition;
+        public Quaternion initialRotation;
         public float positionLerpSpeed = 2.0f;
         public float rotationLerpSpeed = 2.0f;
 
@@ -48,6 +51,8 @@ namespace Telexistence
 
         private Vector3 targetRobotPosition;
         private Quaternion targetRobotRotation;
+
+        public TextMeshProUGUI resultText;
 
         void Start()
         {
@@ -92,6 +97,12 @@ namespace Telexistence
                 kinect_cursor.rotation = initialRotation;
                 SendMessageToServer("home");
             }
+            else if (Input.GetKeyDown(KeyCode.PageUp))
+            {
+                RequestGazeCalibration(GazeCalibrationMode.Legacy);
+            }
+            GazeCalibrationQuality result = GetGazeCalibrationQuality();
+            resultText.text = result.right.ToString() + "  " + result.left.ToString(); ;
         }
 
         IEnumerator SendDataCoroutine()
@@ -141,7 +152,7 @@ namespace Telexistence
 
         }
 
-        private void SendMessageToServer(string message)
+        public void SendMessageToServer(string message)
         {
             if (_client != null && _client.Connected)
             {
