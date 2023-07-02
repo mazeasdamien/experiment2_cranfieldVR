@@ -34,10 +34,6 @@ namespace Telexistence
         public float positionLerpSpeed = 2.0f;
         public float rotationLerpSpeed = 2.0f;
 
-        // Temporary variables for position and rotation
-        private Vector3 tempPos = new();
-        private Vector3 tempRot = new();
-
         // Variable for previous message sent
         string previousMessage = null;
 
@@ -53,6 +49,9 @@ namespace Telexistence
         private Quaternion targetRobotRotation;
 
         public TextMeshProUGUI resultText;
+        //private StreamWriter csvWriter;
+        //private string csvFilePath;
+        //private int sampleId = 0;
 
         void Start()
         {
@@ -69,6 +68,8 @@ namespace Telexistence
 
             // Start coroutine for sending data
             StartCoroutine(SendDataCoroutine());
+            //csvFilePath = Path.Combine(Application.dataPath, "data.csv");
+            //csvWriter = new StreamWriter(csvFilePath, true);
         }
 
         void Update()
@@ -109,14 +110,6 @@ namespace Telexistence
         {
             while (isRunning)
             {
-
-                // Check if the local position or rotation of the cursor has changed
-                if (kinect_cursor.localPosition != tempPos || kinect_cursor.localEulerAngles != tempRot)
-                {
-                    // Update temporary position and rotation
-                    tempPos = kinect_cursor.localPosition;
-                    tempRot = kinect_cursor.localEulerAngles;
-
                     float yRotation = kinect_cursor.localRotation.eulerAngles.y;
 
                     // Check if yRotation is within the desired range
@@ -130,7 +123,7 @@ namespace Telexistence
                         if (!float.IsNaN(wpr.x) && !float.IsNaN(wpr.y) && !float.IsNaN(wpr.z))
                         {
                             // Create the message to send
-                            string message = $"{-tempPos.x * 1000},{tempPos.y * 1000},{tempPos.z * 1000},{wpr.x},{wpr.y},{wpr.z}";
+                            string message = $"{-kinect_cursor.localPosition.x * 1000},{kinect_cursor.localPosition.y * 1000},{kinect_cursor.localPosition.z * 1000},{wpr.x},{wpr.y},{wpr.z}";
 
                             // Send the message if it's different from the previous one
                             if (previousMessage == null || previousMessage != message)
@@ -144,10 +137,8 @@ namespace Telexistence
                     {
                         isYRotationInRange = false; // Update bool
                     }
-                }
-
                 // Wait for a fixed time interval before sending the next update
-                yield return new WaitForSeconds(0.1f);
+                yield return new WaitForSeconds(0.2f);
             }
 
         }
@@ -280,6 +271,7 @@ namespace Telexistence
         // Function to update robot transforms based on received joint angles and position
         private void UpdateRobotTransforms(float[] jointAngles, Vector3 position, Vector3 rotation)
         {
+            //sampleId++;
             if (robot.Count != jointAngles.Length)
             {
                 Debug.LogError("Robot joint count doesn't match the joint angles received.");
@@ -318,6 +310,11 @@ namespace Telexistence
             targetRobotPosition = new Vector3(-position.x / 1000, position.y / 1000, position.z / 1000);
             Vector3 eulerAngles = CreateQuaternionFromFanucWPR(rotation.x, rotation.y, rotation.z).eulerAngles;
             targetRobotRotation = Quaternion.Euler(eulerAngles.x, -eulerAngles.y, -eulerAngles.z);
+
+            //// Register the data in the CSV file
+            //string line = $"{sampleId},{kinect_cursor.transform.localPosition.x},{kinect_cursor.transform.localPosition.y},{kinect_cursor.transform.localPosition.z},{kinect_cursor.transform.localEulerAngles.x},{kinect_cursor.transform.localEulerAngles.y},{kinect_cursor.transform.localEulerAngles.z},{worldPosition.transform.localPosition.x},{worldPosition.transform.localPosition.y},{worldPosition.transform.localPosition.z},{worldPosition.transform.localEulerAngles.x},{worldPosition.transform.localEulerAngles.y},{worldPosition.transform.localEulerAngles.z}";
+            //csvWriter.WriteLine(line);
+            //csvWriter.Flush();
         }
 
         private void LerpRobotTransform()
@@ -383,6 +380,8 @@ namespace Telexistence
                 _client.Close();
                 _client = null;
             }
+
+            //csvWriter.Close();
         }
     }
 }
