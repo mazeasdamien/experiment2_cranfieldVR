@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.XR;
 using System.Collections.Generic;
 using System.Collections;
+using Unity.VisualScripting;
 
 namespace VarjoExample
 {
@@ -11,6 +12,7 @@ namespace VarjoExample
         public Transform point1;
         public Transform point2;
 
+        public VibrationController vibrationController;
         public FanucHandler fanucHandler;
 
         public Material original;
@@ -22,12 +24,16 @@ namespace VarjoExample
         public bool isInContact;
 
         private Vector3 previousPosition;
-        private Coroutine freezeCoroutine;
         private Quaternion previousRotation;
         public bool isRotating;
 
         public Hand hand;
         public bool isMoving;
+
+        public GameObject prefabLastOk;
+        private Vector3 lastReachablePosition;
+        private GameObject instantiatedPrefab;
+        private Quaternion lastReachableRotation;
 
         private void Start()
         {
@@ -35,6 +41,8 @@ namespace VarjoExample
             controllerRenderer = controller.GetComponent<Renderer>();
             previousPosition = transform.position;
             previousRotation = transform.rotation;
+            lastReachablePosition = transform.position;
+            lastReachableRotation = transform.rotation;
         }
 
         private void Update()
@@ -74,19 +82,48 @@ namespace VarjoExample
             if (!fanucHandler.messageReachability)
             {
                 // Change the controller's material to notPossible
+                vibrationController.TurnOnHaptic();
                 controllerRenderer.material = notPossible;
+
+                // Instantiate the prefab at the last known reachable position and rotation, if it hasn't been instantiated yet
+                if (instantiatedPrefab == null)
+                {
+                    instantiatedPrefab = Instantiate(prefabLastOk, lastReachablePosition, lastReachableRotation);
+                }
             }
             else if (isInContact)
             {
                 // Change the controller's material to inContact
                 controllerRenderer.material = inContact;
+
+                // Update the last known reachable position and rotation
+                lastReachablePosition = transform.position;
+                lastReachableRotation = transform.rotation;
+
+                // Destroy the instantiated prefab, if it exists
+                if (instantiatedPrefab != null)
+                {
+                    Destroy(instantiatedPrefab);
+                    instantiatedPrefab = null;
+                }
             }
             else if (!isInContact)
             {
                 // Change the controller's material to the original
+                vibrationController.TurnOffHaptic();
                 controllerRenderer.material = original;
-            }
 
+                // Update the last known reachable position and rotation
+                lastReachablePosition = transform.position;
+                lastReachableRotation = transform.rotation;
+
+                // Destroy the instantiated prefab, if it exists
+                if (instantiatedPrefab != null)
+                {
+                    Destroy(instantiatedPrefab);
+                    instantiatedPrefab = null;
+                }
+            }
         }
     }
 }
