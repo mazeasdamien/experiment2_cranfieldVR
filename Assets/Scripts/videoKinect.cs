@@ -323,7 +323,39 @@ namespace Telexistence
             // Load the byte array into the texture
             texture.LoadRawTextureData(data);
             texture.Apply();
+
+            // Define the red color
+            Color red = new Color(1, 0, 0, 1);
+
+            // Define cross thickness and length
+            int crossThickness = 1; // For example
+            int crossLength = width / 20; // For example
+
+            // Center position of the texture
+            int centerX = width / 2;
+            int centerY = height / 2;
+
+            // Draw a red cross at the center of the texture
+            for (int i = -crossLength; i <= crossLength; i++)
+            {
+                for (int j = -crossThickness; j <= crossThickness; j++)
+                {
+                    // Horizontal line
+                    int clampedXH = Mathf.Clamp(centerX + i, 0, width - 1);
+                    int clampedYH = Mathf.Clamp(centerY + j, 0, height - 1);
+                    texture.SetPixel(clampedXH, clampedYH, red);
+
+                    // Vertical line
+                    int clampedXV = Mathf.Clamp(centerX + j, 0, width - 1);
+                    int clampedYV = Mathf.Clamp(centerY + i, 0, height - 1);
+                    texture.SetPixel(clampedXV, clampedYV, red);
+                }
+            }
+
+            texture.Apply();
         }
+
+
 
         private void OnDestroy()
         {

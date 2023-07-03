@@ -221,22 +221,6 @@ public class LaserPointer : MonoBehaviour
                             Color[] pixels = sourceTexture.GetPixels(startX, startY, size, size);
                             Texture2D targetTexture = new Texture2D(size, size);
                             targetTexture.SetPixels(pixels);
-
-                            // Draw a red cross in the center of the target texture
-                            int crossSize = 15; // Change this to adjust the size of the cross
-                            int crossThickness = 2; // Change this to adjust the thickness of the cross
-                            Color crossColor = Color.red; // Change this to adjust the color of the cross
-                            for (int i = -crossSize; i <= crossSize; i++)
-                            {
-                                for (int j = -crossThickness; j <= crossThickness; j++)
-                                {
-                                    // Vertical line
-                                    targetTexture.SetPixel(size / 2 + j, size / 2 + i, crossColor);
-                                    // Horizontal line
-                                    targetTexture.SetPixel(size / 2 + i, size / 2 + j, crossColor);
-                                }
-                            }
-
                             targetTexture.Apply();
                             targetImage.texture = targetTexture;
                             break;

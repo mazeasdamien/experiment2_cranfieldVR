@@ -39,6 +39,14 @@ public class modalities : MonoBehaviour
     public DateTime? varjoDateTime;
     public DateTime? startTaskDateTime;
 
+    public TextMeshProUGUI countdownText;
+    public AudioClip countdownSound;
+    private AudioSource audioSource;
+    public AudioClip countdownSound20to8;
+    private Coroutine countdownCoroutine;
+
+    public bool countdownFinish;
+
     [System.Serializable]
     public class ParticipantData
     {
@@ -211,7 +219,14 @@ public class modalities : MonoBehaviour
 
         using (StreamWriter sw = new StreamWriter(filePath, true))
         {
-            sw.WriteLine($"{varjoDateTime?.ToString()},{shapeSelected}/{colorSelected},{elapsed.TotalSeconds}");
+            if (!countdownFinish)
+            {
+                sw.WriteLine($"{varjoDateTime?.ToString()},{shapeSelected}/{colorSelected},{elapsed.TotalSeconds}");
+            }
+            else
+            {
+                sw.WriteLine($"{varjoDateTime?.ToString()},{shapeSelected}/{colorSelected},{elapsed.TotalSeconds},countdown finished");
+            }
         }
     }
 
@@ -276,6 +291,7 @@ public class modalities : MonoBehaviour
 
     public void NextTask()
     {
+        countdownFinish = false;
         if (CurrentTask == TaskType.start)
         {
             startTaskDateTime = varjoDateTime;
@@ -286,6 +302,20 @@ public class modalities : MonoBehaviour
             fanucHandler.kinect_cursor.position = fanucHandler.initialPosition;
             fanucHandler.kinect_cursor.rotation = fanucHandler.initialRotation;
             fanucHandler.SendMessageToServer("home");
+
+            // Start the countdown
+            if (currentModality == ModalityType.TRIAL)
+            {
+                StartOrResetCountdown(180);
+            }
+            else
+            {
+                StartOrResetCountdown(60);
+            }
+        }
+        else if (CurrentTask == TaskType.t3)
+        {
+            TurnOffCountdown();
         }
         // If it is task t1, t2 or t3, save the laserPointer shape/color and varjoDateTime to CSV.
         if ((CurrentTask == TaskType.t1 || CurrentTask == TaskType.t2 || CurrentTask == TaskType.t3) && CurrentModality != ModalityType.TRIAL)
@@ -318,6 +348,67 @@ public class modalities : MonoBehaviour
         }
     }
 
+    private void TurnOffCountdown()
+    {
+        // Stop the coroutine if it's running
+        if (countdownCoroutine != null)
+        {
+            StopCoroutine(countdownCoroutine);
+            countdownCoroutine = null;
+        }
+    }
+    // Call this function to start or reset the countdown coroutine
+    private void StartOrResetCountdown(int countdownTime)
+    {
+        // Stop the previous coroutine if it's running
+        if (countdownCoroutine != null)
+        {
+            StopCoroutine(countdownCoroutine);
+            countdownCoroutine = null;
+        }
+
+        // Start a new coroutine
+        countdownCoroutine = StartCoroutine(StartCountdown(countdownTime));
+    }
+
+    private IEnumerator StartCountdown(int countdownTime)
+    {
+        audioSource = GetComponent<AudioSource>();
+        while (countdownTime > 0)
+        {
+            countdownText.text = countdownTime.ToString();
+
+            // Change text color based on time left
+            if (countdownTime <= 8)
+            {
+                countdownText.color = Color.red;
+
+                // Play countdown sound when there are exactly 8 seconds left
+                if (countdownTime == 8)
+                {
+                    audioSource.PlayOneShot(countdownSound);
+                }
+            }
+            else if (countdownTime <= 20)
+            {
+                countdownText.color = new Color(1, 0.5f, 0);
+
+                audioSource.PlayOneShot(countdownSound20to8);
+                audioSource.volume = 1.0f;
+
+            }
+            else
+            {
+                countdownText.color = Color.white;
+            }
+
+            yield return new WaitForSeconds(1);
+            countdownTime--;
+        }
+        countdownFinish = true;
+        SetTask(TaskType.questions);
+        countdownText.text = "";
+    }
 
     IEnumerator EndExperiment()
     {
@@ -335,10 +426,15 @@ Application.Quit();
         long varjoTimestamp = VarjoTime.GetVarjoTimestamp();
         varjoDateTime = VarjoTime.ConvertVarjoTimestampToDateTime(varjoTimestamp);
 
-
-        SetModality(CurrentModality);
-        SetModel(CurrentModel);
-        SetTask(CurrentTask);
+        if (!countdownFinish)
+        {
+            SetModality(CurrentModality);
+            SetModel(CurrentModel);
+            SetTask(CurrentTask);
+        }
+        else
+        {
+        }
     }
 
     public void SetTask(TaskType task)

@@ -19,7 +19,7 @@ namespace Telexistence
         private TcpClient _client;
         private NetworkStream _stream;
         public RestrictMovement RestrictMovement;
-        private bool isYRotationInRange = true;
+        public bool isYRotationInRange = true;
 
         // Server connection settings
         private string _serverIP = "127.0.0.1";

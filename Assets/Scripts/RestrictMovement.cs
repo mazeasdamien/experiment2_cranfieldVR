@@ -79,7 +79,7 @@ namespace VarjoExample
             transform.position = new Vector3(x, y, z);
 
 
-            if (!fanucHandler.messageReachability)
+            if (!fanucHandler.messageReachability || !fanucHandler.isYRotationInRange)
             {
                 // Change the controller's material to notPossible
                 vibrationController.TurnOnHaptic();
