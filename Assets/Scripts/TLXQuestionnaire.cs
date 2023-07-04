@@ -124,7 +124,6 @@ public class TLXQuestionnaire : MonoBehaviour
             Directory.CreateDirectory(folderPath);
             string fileName = $"participant_{m.par_ID}_data.csv";
             string filePath = Path.Combine(folderPath, fileName);
-            TimeSpan elapsed = m.varjoDateTime.Value - m.startTaskDateTime.Value;
 
             using (StreamWriter sw = new StreamWriter(filePath, true))
             {
@@ -137,7 +136,6 @@ public class TLXQuestionnaire : MonoBehaviour
                 sw.WriteLine();
             }
 
-
             // Reset the current question index and move on to the next task
             currentQuestionIndex = 0;
             m.NextTask();
@@ -145,5 +143,4 @@ public class TLXQuestionnaire : MonoBehaviour
             ResetQuestionnaire();
         }
     }
-
 }

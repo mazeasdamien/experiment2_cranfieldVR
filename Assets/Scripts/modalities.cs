@@ -12,6 +12,7 @@ using Telexistence;
 
 public class modalities : MonoBehaviour
 {
+    public pupildata_recording pr;
     public GameObject feed2D;
     public bool usePT;
     public bool useMarker;
@@ -44,7 +45,7 @@ public class modalities : MonoBehaviour
     private AudioSource audioSource;
     public AudioClip countdownSound20to8;
     private Coroutine countdownCoroutine;
-
+    public meshKinect mk;
     public bool countdownFinish;
 
     [System.Serializable]
@@ -98,6 +99,7 @@ public class modalities : MonoBehaviour
     private int currentModalityIndex;
     private int currentTaskIndex;
     private ExperimentFlow experimentFlow;
+    public LineRenderer lr;
 
     public ModalityType CurrentModality
     {
@@ -201,11 +203,11 @@ public class modalities : MonoBehaviour
         Directory.CreateDirectory(folderPath);
         string fileName = $"participant_{par_ID}_data.csv";
         string filePath = Path.Combine(folderPath, fileName);
-
+        string varjoTimeString = varjoDateTime?.TimeOfDay.ToString(@"hh\:mm\:ss");
         using (StreamWriter sw = new StreamWriter(filePath, true))
         {
             string nextModalityName = experimentFlow.modalities[currentModalityIndex + 1].name;
-            sw.WriteLine($"{varjoDateTime?.ToString()},{nextModalityName}");
+            sw.WriteLine($"{pr.elapsedTime},{varjoTimeString},{nextModalityName}");
         }
     }
 
@@ -216,16 +218,18 @@ public class modalities : MonoBehaviour
         string fileName = $"participant_{par_ID}_data.csv";
         string filePath = Path.Combine(folderPath, fileName);
         TimeSpan elapsed = varjoDateTime.Value - startTaskDateTime.Value;
+        string varjoTimeString = varjoDateTime?.TimeOfDay.ToString(@"hh\:mm\:ss");
+
 
         using (StreamWriter sw = new StreamWriter(filePath, true))
         {
             if (!countdownFinish)
             {
-                sw.WriteLine($"{varjoDateTime?.ToString()},{shapeSelected}/{colorSelected},{elapsed.TotalSeconds}");
+                sw.WriteLine($"{pr.elapsedTime},{varjoTimeString},{shapeSelected}/{colorSelected},{elapsed.TotalSeconds}");
             }
             else
             {
-                sw.WriteLine($"{varjoDateTime?.ToString()},{shapeSelected}/{colorSelected},{elapsed.TotalSeconds},countdown finished");
+                sw.WriteLine($"{pr.elapsedTime},{varjoTimeString},{shapeSelected}/{colorSelected},{elapsed.TotalSeconds},countdown finished");
             }
         }
     }
@@ -274,7 +278,8 @@ public class modalities : MonoBehaviour
                     g.SetActive(true);
                 }
                 panel_instruction.SetActive(true);
-                panel_questionnaire.SetActive(false);
+                panel_questionnaire.SetActive(false); 
+                lr.enabled = true;
                 break;
             case "questionnaire":
                 foreach (var g in toHide)
@@ -283,6 +288,8 @@ public class modalities : MonoBehaviour
                 }
                 panel_instruction.SetActive(false);
                 panel_questionnaire.SetActive(true);
+                mk.instantiatedText = null;
+                lr.enabled = false;
                 break;
             default:
                 break;
@@ -291,9 +298,9 @@ public class modalities : MonoBehaviour
 
     public void NextTask()
     {
-        countdownFinish = false;
         if (CurrentTask == TaskType.start)
         {
+            pr.CreateCSV();
             startTaskDateTime = varjoDateTime;
         }
 
@@ -315,6 +322,7 @@ public class modalities : MonoBehaviour
         }
         else if (CurrentTask == TaskType.t3)
         {
+            fanucHandler.SendMessageToServer("home");
             TurnOffCountdown();
         }
         // If it is task t1, t2 or t3, save the laserPointer shape/color and varjoDateTime to CSV.
@@ -346,6 +354,7 @@ public class modalities : MonoBehaviour
         {
             SetCurrentModalityAndTask();
         }
+        countdownFinish = false;
     }
 
     private void TurnOffCountdown()
@@ -406,35 +415,28 @@ public class modalities : MonoBehaviour
             countdownTime--;
         }
         countdownFinish = true;
-        SetTask(TaskType.questions);
         countdownText.text = "";
     }
 
     IEnumerator EndExperiment()
     {
         yield return new WaitForSeconds(5f);
-#if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying = false;
-#else
-// If running in build
-Application.Quit();
-#endif
-    }
+        #if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+        #else
+        // If running in build
+        Application.Quit();
+        #endif
+            }
 
     private void Update()
     {
+
         long varjoTimestamp = VarjoTime.GetVarjoTimestamp();
         varjoDateTime = VarjoTime.ConvertVarjoTimestampToDateTime(varjoTimestamp);
-
-        if (!countdownFinish)
-        {
             SetModality(CurrentModality);
             SetModel(CurrentModel);
             SetTask(CurrentTask);
-        }
-        else
-        {
-        }
     }
 
     public void SetTask(TaskType task)

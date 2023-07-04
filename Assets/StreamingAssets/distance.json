@@ -12,7 +12,7 @@
         },
         {
           "taskName": "t1",
-          "distance": "40 cm",
+          "distance": "38-40 cm",
           "panelType": "instruction",
           "displayButtons": true,
           "mainButtonText": "NEXT",
@@ -20,7 +20,7 @@
         },
         {
           "taskName": "t2",
-          "distance": "35 cm",
+          "distance": "42 - 44 cm",
           "panelType": "instruction",
           "displayButtons": true,
           "mainButtonText": "NEXT",
@@ -28,7 +28,7 @@
         },
         {
           "taskName": "t3",
-          "distance": "45 cm",
+          "distance": "41-43 cm",
           "panelType": "instruction",
           "displayButtons": true,
           "mainButtonText": "FINISH",
@@ -48,7 +48,7 @@
         },
         {
           "taskName": "t1",
-          "distance": "35 cm",
+          "distance": "33-35 cm",
           "panelType": "instruction",
           "displayButtons": true,
           "mainButtonText": "NEXT",
@@ -56,7 +56,7 @@
         },
         {
           "taskName": "t2",
-          "distance": "38 cm",
+          "distance": "33-35 cm",
           "panelType": "instruction",
           "displayButtons": true,
           "mainButtonText": "NEXT",
@@ -64,7 +64,7 @@
         },
         {
           "taskName": "t3",
-          "distance": "40 cm",
+          "distance": "35-37 cm",
           "panelType": "instruction",
           "displayButtons": true,
           "mainButtonText": "FINISH",
@@ -91,7 +91,7 @@
         },
         {
           "taskName": "t1",
-          "distance": "35 cm",
+          "distance": "48-50 cm",
           "panelType": "instruction",
           "displayButtons": true,
           "mainButtonText": "NEXT",
@@ -99,7 +99,7 @@
         },
         {
           "taskName": "t2",
-          "distance": "38 cm",
+          "distance": "39-41 cm",
           "panelType": "instruction",
           "displayButtons": true,
           "mainButtonText": "NEXT",
@@ -107,7 +107,7 @@
         },
         {
           "taskName": "t3",
-          "distance": "40 cm",
+          "distance": "52-54 cm",
           "panelType": "instruction",
           "displayButtons": true,
           "mainButtonText": "FINISH",
@@ -134,7 +134,7 @@
         },
         {
           "taskName": "t1",
-          "distance": "35 cm",
+          "distance": "41-43 cm",
           "panelType": "instruction",
           "displayButtons": true,
           "mainButtonText": "NEXT",
@@ -142,7 +142,7 @@
         },
         {
           "taskName": "t2",
-          "distance": "38 cm",
+          "distance": "35-37 cm",
           "panelType": "instruction",
           "displayButtons": true,
           "mainButtonText": "NEXT",
@@ -150,7 +150,7 @@
         },
         {
           "taskName": "t3",
-          "distance": "40 cm",
+          "distance": "42-44 cm",
           "panelType": "instruction",
           "displayButtons": true,
           "mainButtonText": "FINISH",
@@ -177,7 +177,7 @@
         },
         {
           "taskName": "t1",
-          "distance": "35 cm",
+          "distance": "37-39 cm",
           "panelType": "instruction",
           "displayButtons": true,
           "mainButtonText": "NEXT",
@@ -185,7 +185,7 @@
         },
         {
           "taskName": "t2",
-          "distance": "38 cm",
+          "distance": "44-46 cm",
           "panelType": "instruction",
           "displayButtons": true,
           "mainButtonText": "NEXT",
@@ -193,7 +193,7 @@
         },
         {
           "taskName": "t3",
-          "distance": "40 cm",
+          "distance": "31-33 cm",
           "panelType": "instruction",
           "displayButtons": true,
           "mainButtonText": "FINISH",

@@ -1157,14 +1157,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 174086132}
-  m_LocalRotation: {x: 0.000000029802319, y: -0.000000029802319, z: 0.27794433, w: 0.9605972}
-  m_LocalPosition: {x: 0.03, y: 10.44, z: 0.023}
-  m_LocalScale: {x: 0.016227, y: 0.1327048, z: 0.052575}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.018, y: 6.79, z: 0.261}
+  m_LocalScale: {x: 0.068067394, y: 0.1327048, z: 0.052575}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 659356946}
   m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 32.275}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!23 &174086134
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -4880,6 +4880,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a36720eef37e0f42abf55295a6c68a7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  pr: {fileID: 701209062}
   feed2D: {fileID: 1249565600}
   usePT: 0
   useMarker: 0
@@ -4918,6 +4919,8 @@ MonoBehaviour:
   countdownText: {fileID: 1864404540}
   countdownSound: {fileID: 8300000, guid: 1f76baaad8b68b04d8b9eda1b16a9f1b, type: 3}
   countdownSound20to8: {fileID: 8300000, guid: 12f91d5f05f416a4da47c77bac6381fa, type: 3}
+  mk: {fileID: 1719141294}
+  countdownFinish: 0
   currentModality: 0
   currentModel: 0
   currentTask: 0
@@ -4939,6 +4942,7 @@ MonoBehaviour:
   - {fileID: 1620606560}
   - {fileID: 683180349}
   - {fileID: 1359794293}
+  lr: {fileID: 701209059}
 --- !u!114 &701209061
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4986,8 +4990,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 82a2b41e7341c3c45a5fe06f87201190, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mm: {fileID: 701209060}
+  isRecording: 0
   isFilterSet: 0
   isFrequencySet: 0
+  elapsedTime: 0
 --- !u!82 &701209063
 AudioSource:
   m_ObjectHideFlags: 0
@@ -6083,8 +6090,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 959736031}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.196, y: 8.41, z: 0.006}
-  m_LocalScale: {x: 0.016227, y: 0.81399, z: 0.052575}
+  m_LocalPosition: {x: 0.013, y: 6.87, z: -0.236}
+  m_LocalScale: {x: 0.07307656, y: 0.16666779, z: 0.048392657}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 659356946}
@@ -6498,8 +6505,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1085376974}
   m_LocalRotation: {x: 0.70707583, y: 0.70707583, z: -0.0066206446, w: -0.006620734}
-  m_LocalPosition: {x: -0.277, y: -0.2182, z: 0.18}
-  m_LocalScale: {x: 0.20452836, y: 0.54596865, z: 0.2564954}
+  m_LocalPosition: {x: -0.274, y: -0.2182, z: 0.1799}
+  m_LocalScale: {x: 0.6926353, y: -0.016500637, z: 0.048552014}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2034749870}
@@ -6708,7 +6715,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1112562109}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -13.1, y: 26.9, z: 21.6}
+  m_LocalPosition: {x: -10.4, y: 26.9, z: 15}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -9586,6 +9593,7 @@ MonoBehaviour:
   maxDistance: 5
   lineCreator: {fileID: 701209058}
   textPrefab: {fileID: 4981007854273414698, guid: 0d4a5c356cb1a124ba7c014a6bb00112, type: 3}
+  instantiatedText: {fileID: 0}
   textsize: 100
   m: {fileID: 701209060}
   midDepthInCm: 0
@@ -10240,8 +10248,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1811936857}
   m_LocalRotation: {x: -0.5005326, y: 0.5005327, z: 0.49946675, w: 0.4994668}
-  m_LocalPosition: {x: 0.09254863, y: 8.660361, z: -0.122581355}
-  m_LocalScale: {x: 0.011979001, y: 0.06326847, z: 0.86066985}
+  m_LocalPosition: {x: -0.164, y: 9.27, z: 0.0132}
+  m_LocalScale: {x: 0.03814713, y: 0.015392586, z: 0.86066985}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 659356946}

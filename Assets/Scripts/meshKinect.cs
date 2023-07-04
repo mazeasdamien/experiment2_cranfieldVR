@@ -29,7 +29,7 @@ namespace Telexistence
         public float maxDistance = 1.0f; // Define the maximum distance
         public LineCreator lineCreator;
         public GameObject textPrefab;
-        private GameObject instantiatedText = null;
+        public GameObject instantiatedText = null;
         public float textsize;
 
         private bool hasAppliedLastMesh = false;
