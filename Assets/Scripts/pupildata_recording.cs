@@ -23,7 +23,8 @@ public class pupildata_recording : MonoBehaviour
 
     public void CreateCSV()
     {
-        filePath = Path.Combine(Application.dataPath, $"eye_tracking_data_{mm.par_ID}_{mm.CurrentModality}.csv");
+
+        filePath = Path.Combine(Application.dataPath, "Participants_data", $"participant_{mm.par_ID}", $"eye_tracking_data_{mm.par_ID}_{mm.CurrentModality}.csv");
 
         // Write the CSV header
         using (StreamWriter writer = new StreamWriter(filePath, append: false))
@@ -39,7 +40,7 @@ public class pupildata_recording : MonoBehaviour
         {
             RecordData();
         }
-        else 
+        else
         {
             StopRecording();
         }
@@ -81,15 +82,12 @@ public class pupildata_recording : MonoBehaviour
                 float leftPupilDiameter = eyeMeasurementsList[i].leftPupilDiameterInMM;
                 float rightPupilDiameter = eyeMeasurementsList[i].rightPupilDiameterInMM;
 
-                if ((leftPupilDiameter != 0) && (rightPupilDiameter != 0))
+                elapsedTime = (gazeDataList[i].captureTime / 1e6) - recordingStartTime;  // Convert Varjo timestamp from nanoseconds to milliseconds
+                Debug.Log(elapsedTime);
+                using (StreamWriter writer = new StreamWriter(filePath, append: true))
                 {
-                    elapsedTime = (gazeDataList[i].captureTime / 1e6) - recordingStartTime;  // Convert Varjo timestamp from nanoseconds to milliseconds
-                    Debug.Log(elapsedTime);
-                    using (StreamWriter writer = new StreamWriter(filePath, append: true))
-                    {
-                        // Write the sample in the CSV file
-                        writer.WriteLine($"{elapsedTime},{leftPupilDiameter},{rightPupilDiameter}");
-                    }
+                    // Write the sample in the CSV file
+                    writer.WriteLine($"{elapsedTime},{leftPupilDiameter},{rightPupilDiameter}");
                 }
             }
         }

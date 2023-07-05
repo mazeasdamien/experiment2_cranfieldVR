@@ -26,10 +26,10 @@ public class modalities : MonoBehaviour
     public GameObject photopanel;
     public TLXQuestionnaire tlxQuestionnaire;
     public GameObject trial;
-    public GameObject m1;
-    public GameObject m2;
-    public GameObject m3;
-    public GameObject m4;
+    public GameObject DD;
+    public GameObject DDD;
+    public GameObject DDDDD;
+    public GameObject AV;
     public TextMeshProUGUI info;
     public VisualEffect pt;
     public LaserPointer laserPointer;
@@ -74,10 +74,10 @@ public class modalities : MonoBehaviour
     {
         nothing,
         trial,
-        model1,
-        model2,
-        model3,
-        model4
+        DD,
+        DDD,
+        DDDDD,
+        AV
     }
 
     public enum TaskType
@@ -278,7 +278,11 @@ public class modalities : MonoBehaviour
                     g.SetActive(true);
                 }
                 panel_instruction.SetActive(true);
-                panel_questionnaire.SetActive(false); 
+                panel_questionnaire.SetActive(false);
+                if (mk.instantiatedText != null)
+                {
+                    mk.instantiatedText.SetActive(true);
+                }
                 lr.enabled = true;
                 break;
             case "questionnaire":
@@ -288,7 +292,10 @@ public class modalities : MonoBehaviour
                 }
                 panel_instruction.SetActive(false);
                 panel_questionnaire.SetActive(true);
-                mk.instantiatedText = null;
+                if (mk.instantiatedText != null)
+                {
+                    mk.instantiatedText.SetActive(false);
+                }
                 lr.enabled = false;
                 break;
             default:
@@ -434,9 +441,9 @@ public class modalities : MonoBehaviour
 
         long varjoTimestamp = VarjoTime.GetVarjoTimestamp();
         varjoDateTime = VarjoTime.ConvertVarjoTimestampToDateTime(varjoTimestamp);
-            SetModality(CurrentModality);
-            SetModel(CurrentModel);
-            SetTask(CurrentTask);
+        SetModality(CurrentModality);
+        SetModel(CurrentModel);
+        SetTask(CurrentTask);
     }
 
     public void SetTask(TaskType task)
@@ -477,45 +484,45 @@ public class modalities : MonoBehaviour
         {
             case ModalityModel.trial:
                 trial.SetActive(true);
-                m1.SetActive(false);
-                m2.SetActive(false);
-                m3.SetActive(false);
-                m4.SetActive(false);
+                DD.SetActive(false);
+                DDD.SetActive(false);
+                DDDDD.SetActive(false);
+                AV.SetActive(false);
                 break;
-            case ModalityModel.model1:
+            case ModalityModel.DD:
                 trial.SetActive(false);
-                m1.SetActive(true);
-                m2.SetActive(false);
-                m3.SetActive(false);
-                m4.SetActive(false);
+                DD.SetActive(true);
+                DDD.SetActive(false);
+                DDDDD.SetActive(false);
+                AV.SetActive(false);
                 break;
-            case ModalityModel.model2:
+            case ModalityModel.DDD:
                 trial.SetActive(false);
-                m1.SetActive(false);
-                m2.SetActive(true);
-                m3.SetActive(false);
-                m4.SetActive(false);
+                DD.SetActive(false);
+                DDD.SetActive(true);
+                DDDDD.SetActive(false);
+                AV.SetActive(false);
                 break;
-            case ModalityModel.model3:
+            case ModalityModel.DDDDD:
                 trial.SetActive(false);
-                m1.SetActive(false);
-                m2.SetActive(false);
-                m3.SetActive(true);
-                m4.SetActive(false);
+                DD.SetActive(false);
+                DDD.SetActive(false);
+                DDDDD.SetActive(true);
+                AV.SetActive(false);
                 break;
-            case ModalityModel.model4:
+            case ModalityModel.AV:
                 trial.SetActive(false);
-                m1.SetActive(false);
-                m2.SetActive(false);
-                m3.SetActive(false);
-                m4.SetActive(true);
+                DD.SetActive(false);
+                DDD.SetActive(false);
+                DDDDD.SetActive(false);
+                AV.SetActive(true);
                 break;
             case ModalityModel.nothing:
                 trial.SetActive(false);
-                m1.SetActive(false);
-                m2.SetActive(false);
-                m3.SetActive(false);
-                m4.SetActive(false);
+                DD.SetActive(false);
+                DDD.SetActive(false);
+                DDDDD.SetActive(false);
+                AV.SetActive(false);
                 break;
         }
         CurrentModel = model;
