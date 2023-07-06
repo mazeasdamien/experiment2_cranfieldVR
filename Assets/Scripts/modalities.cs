@@ -278,6 +278,7 @@ public class modalities : MonoBehaviour
         switch (currentTask.panelType)
         {
             case "instruction":
+                SetModality(CurrentModality);
                 isInstruction = true;
                 foreach (var g in toHide)
                 {
@@ -292,6 +293,7 @@ public class modalities : MonoBehaviour
                 lr.enabled = true;
                 break;
             case "questionnaire":
+                SetModality(ModalityType.TRIAL);
                 isInstruction = false;
                 foreach (var g in toHide)
                 {
@@ -335,7 +337,6 @@ public class modalities : MonoBehaviour
             fanucHandler.SendMessageToServer("home");
             TurnOffCountdown();
         }
-        // If it is task t1, t2 or t3, save the laserPointer shape/color and varjoDateTime to CSV.
         if ((CurrentTask == TaskType.t1 || CurrentTask == TaskType.t2 || CurrentTask == TaskType.t3) && CurrentModality != ModalityType.TRIAL)
         {
             SaveTaskToCSV(laserPointer.shapeSelected, laserPointer.colorSelected, varjoDateTime);
@@ -350,6 +351,7 @@ public class modalities : MonoBehaviour
             SaveDataToCSV(varjoDateTime);
             if (currentModality.name != "TRIAL")
             {
+                tlxQuestionnaire.currentQuestionIndex = 0;
                 tlxQuestionnaire.ResetQuestionnaire();
             }
             currentTaskIndex = 0;
@@ -376,10 +378,16 @@ public class modalities : MonoBehaviour
             StopCoroutine(countdownCoroutine);
             countdownCoroutine = null;
         }
+
+        // Stop countdown sound
+        StopCountdownSound();
     }
+
     // Call this function to start or reset the countdown coroutine
     private void StartOrResetCountdown(int countdownTime)
     {
+        StopCountdownSound();
+
         // Stop the previous coroutine if it's running
         if (countdownCoroutine != null)
         {
@@ -429,6 +437,15 @@ public class modalities : MonoBehaviour
         countdownText.text = "";
     }
 
+    private void StopCountdownSound()
+    {
+        if (audioSource != null && audioSource.isPlaying)
+        {
+            audioSource.Stop();
+        }
+    }
+
+
     IEnumerator EndExperiment()
     {
         yield return new WaitForSeconds(5f);
@@ -442,7 +459,6 @@ public class modalities : MonoBehaviour
 
     private void Update()
     {
-
         long varjoTimestamp = VarjoTime.GetVarjoTimestamp();
         varjoDateTime = VarjoTime.ConvertVarjoTimestampToDateTime(varjoTimestamp);
         SetModality(CurrentModality);

@@ -26,7 +26,7 @@ public class TLXQuestionnaire : MonoBehaviour
 {    public TextMeshProUGUI questionText;
 
     private List<QuestionData> questions;
-    private int currentQuestionIndex;
+    public int currentQuestionIndex;
     public TextMeshProUGUI right_text;
     public TextMeshProUGUI left_text;
     public TextMeshProUGUI valueText;

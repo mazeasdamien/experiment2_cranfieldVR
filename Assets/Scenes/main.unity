@@ -3729,7 +3729,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 458965938}
-  m_LocalRotation: {x: -0.0283795, y: -0.9715795, z: 0.16158096, w: -0.1706447}
+  m_LocalRotation: {x: -0.0007936495, y: -0.98491347, z: 0.0045186696, w: -0.17298663}
   m_LocalPosition: {x: 0, y: 0, z: 0.562}
   m_LocalScale: {x: 0.8399738, y: 0.8399738, z: 0.8399738}
   m_ConstrainProportionsScale: 0
@@ -3751,7 +3751,7 @@ RectTransform:
   - {fileID: 1864404539}
   m_Father: {fileID: 0}
   m_RootOrder: 13
-  m_LocalEulerAnglesHint: {x: 18.885, y: -199.923, z: 0}
+  m_LocalEulerAnglesHint: {x: 0.526, y: -199.923, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: -1.23, y: 1.7}
@@ -6889,6 +6889,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   questionText: {fileID: 74329978}
+  currentQuestionIndex: 0
   right_text: {fileID: 73181594}
   left_text: {fileID: 864334781}
   valueText: {fileID: 1185078071}
