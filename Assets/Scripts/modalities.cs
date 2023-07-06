@@ -12,6 +12,7 @@ using Telexistence;
 
 public class modalities : MonoBehaviour
 {
+    public videoKinect v;
     public pupildata_recording pr;
     public GameObject feed2D;
     public bool usePT;
@@ -293,7 +294,6 @@ public class modalities : MonoBehaviour
                 lr.enabled = true;
                 break;
             case "questionnaire":
-                SetModality(ModalityType.TRIAL);
                 isInstruction = false;
                 foreach (var g in toHide)
                 {
@@ -306,6 +306,8 @@ public class modalities : MonoBehaviour
                     mk.instantiatedText.SetActive(false);
                 }
                 lr.enabled = false;
+                SetModality(ModalityType.TRIAL);
+
                 break;
             default:
                 break;

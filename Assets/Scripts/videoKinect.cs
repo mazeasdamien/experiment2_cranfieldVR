@@ -355,8 +355,6 @@ namespace Telexistence
             texture.Apply();
         }
 
-
-
         private void OnDestroy()
         {
             if (kinect != null)
@@ -385,6 +383,5 @@ namespace Telexistence
                 bgrMat = null;
             }
         }
-
     }
 }
