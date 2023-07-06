@@ -16,7 +16,7 @@
           "panelType": "instruction",
           "displayButtons": true,
           "mainButtonText": "NEXT",
-          "model": "trial"
+          "model": "TRIAL"
         },
         {
           "taskName": "t2",
@@ -24,7 +24,7 @@
           "panelType": "instruction",
           "displayButtons": true,
           "mainButtonText": "NEXT",
-          "model": "trial"
+          "model": "TRIAL"
         },
         {
           "taskName": "t3",
@@ -32,7 +32,7 @@
           "panelType": "instruction",
           "displayButtons": true,
           "mainButtonText": "FINISH",
-          "model": "trial"
+          "model": "TRIAL"
         }
       ]
     },
@@ -44,7 +44,7 @@
           "panelType": "instruction",
           "displayButtons": false,
           "mainButtonText": "START",
-          "model": "nothing"
+          "model": "DD"
         },
         {
           "taskName": "t1",
@@ -52,7 +52,7 @@
           "panelType": "instruction",
           "displayButtons": true,
           "mainButtonText": "NEXT",
-          "model": "model1"
+          "model": "DD"
         },
         {
           "taskName": "t2",
@@ -60,7 +60,7 @@
           "panelType": "instruction",
           "displayButtons": true,
           "mainButtonText": "NEXT",
-          "model": "model1"
+          "model": "DD"
         },
         {
           "taskName": "t3",
@@ -68,7 +68,7 @@
           "panelType": "instruction",
           "displayButtons": true,
           "mainButtonText": "FINISH",
-          "model": "model1"
+          "model": "DD"
         },
         {
           "taskName": "questions",
@@ -87,7 +87,7 @@
           "panelType": "instruction",
           "displayButtons": false,
           "mainButtonText": "START",
-          "model": "nothing"
+          "model": "DDD"
         },
         {
           "taskName": "t1",
@@ -95,7 +95,7 @@
           "panelType": "instruction",
           "displayButtons": true,
           "mainButtonText": "NEXT",
-          "model": "model2"
+          "model": "DDD"
         },
         {
           "taskName": "t2",
@@ -103,7 +103,7 @@
           "panelType": "instruction",
           "displayButtons": true,
           "mainButtonText": "NEXT",
-          "model": "model2"
+          "model": "DDD"
         },
         {
           "taskName": "t3",
@@ -111,7 +111,7 @@
           "panelType": "instruction",
           "displayButtons": true,
           "mainButtonText": "FINISH",
-          "model": "model2"
+          "model": "DDD"
         },
         {
           "taskName": "questions",
@@ -130,7 +130,7 @@
           "panelType": "instruction",
           "displayButtons": false,
           "mainButtonText": "START",
-          "model": "nothing"
+          "model": "AV"
         },
         {
           "taskName": "t1",
@@ -138,7 +138,7 @@
           "panelType": "instruction",
           "displayButtons": true,
           "mainButtonText": "NEXT",
-          "model": "model3"
+          "model": "AV"
         },
         {
           "taskName": "t2",
@@ -146,7 +146,7 @@
           "panelType": "instruction",
           "displayButtons": true,
           "mainButtonText": "NEXT",
-          "model": "model3"
+          "model": "AV"
         },
         {
           "taskName": "t3",
@@ -154,7 +154,7 @@
           "panelType": "instruction",
           "displayButtons": true,
           "mainButtonText": "FINISH",
-          "model": "model3"
+          "model": "AV"
         },
         {
           "taskName": "questions",
@@ -173,7 +173,7 @@
           "panelType": "instruction",
           "displayButtons": false,
           "mainButtonText": "START",
-          "model": "nothing"
+          "model": "DDDDD"
         },
         {
           "taskName": "t1",
@@ -181,7 +181,7 @@
           "panelType": "instruction",
           "displayButtons": true,
           "mainButtonText": "NEXT",
-          "model": "model4"
+          "model": "DDDDD"
         },
         {
           "taskName": "t2",
@@ -189,7 +189,7 @@
           "panelType": "instruction",
           "displayButtons": true,
           "mainButtonText": "NEXT",
-          "model": "model4"
+          "model": "DDDDD"
         },
         {
           "taskName": "t3",
@@ -197,7 +197,7 @@
           "panelType": "instruction",
           "displayButtons": true,
           "mainButtonText": "FINISH",
-          "model": "model4"
+          "model": "DDDDD"
         },
         {
           "taskName": "questions",

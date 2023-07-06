@@ -71,33 +71,36 @@ namespace Telexistence
             }
             else
             {
-                lineCreator.lineDistance = (midDepth / 10.0f) / 100;
-
-                // Instantiate the text prefab if it doesn't exist
-                if (instantiatedText == null)
+                if (m.isInstruction)
                 {
-                    instantiatedText = Instantiate(textPrefab, transform);
+                    lineCreator.lineDistance = (midDepth / 10.0f) / 100;
+
+                    // Instantiate the text prefab if it doesn't exist
+                    if (instantiatedText == null)
+                    {
+                        instantiatedText = Instantiate(textPrefab, transform);
+                    }
+                    else
+                    {
+                        instantiatedText.SetActive(true);
+                    }
+
+                    // Position the instantiated text in the middle of the line
+                    instantiatedText.transform.position = lineCreator.originObject.transform.position + lineCreator.originObject.transform.TransformDirection(0, lineCreator.lineDistance / 2, 0);
+
+                    // Set the text to display the distance
+                    TMP_Text tmpText = instantiatedText.GetComponentInChildren<TMP_Text>();
+                    tmpText.text = midDepthInCm.ToString() + " cm";
+
+                    // Increase the font size
+                    tmpText.fontSize = textsize;  // Adjust this value as needed
+
+                    // Make the text face the camera
+                    instantiatedText.transform.LookAt(Camera.main.transform);
+
+                    // The text will be flipped 180 degrees on its vertical axis after LookAt. Adjust it back.
+                    instantiatedText.transform.Rotate(0, 180, 0);
                 }
-                else
-                {
-                    instantiatedText.SetActive(true);
-                }
-
-                // Position the instantiated text in the middle of the line
-                instantiatedText.transform.position = lineCreator.originObject.transform.position + lineCreator.originObject.transform.TransformDirection(0, lineCreator.lineDistance / 2, 0);
-
-                // Set the text to display the distance
-                TMP_Text tmpText = instantiatedText.GetComponentInChildren<TMP_Text>();
-                tmpText.text = midDepthInCm.ToString() + " cm";
-
-                // Increase the font size
-                tmpText.fontSize = textsize;  // Adjust this value as needed
-
-                // Make the text face the camera
-                instantiatedText.transform.LookAt(Camera.main.transform);
-
-                // The text will be flipped 180 degrees on its vertical axis after LookAt. Adjust it back.
-                instantiatedText.transform.Rotate(0, 180, 0);
             }
             prevDepth = midDepth;
         }

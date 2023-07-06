@@ -23,15 +23,16 @@ public class pupildata_recording : MonoBehaviour
 
     public void CreateCSV()
     {
-
-        filePath = Path.Combine(Application.dataPath, "Participants_data", $"participant_{mm.par_ID}", $"eye_tracking_data_{mm.par_ID}_{mm.CurrentModality}.csv");
-
-        // Write the CSV header
-        using (StreamWriter writer = new StreamWriter(filePath, append: false))
+        if (mm.CurrentModality != modalities.ModalityType.TRIAL)
         {
-            writer.WriteLine("Time,LeftPupilDiameter,RightPupilDiameter");
-        }
+            filePath = Path.Combine(Application.dataPath, "Participants_data", $"participant_{mm.par_ID}", $"eye_tracking_data_{mm.par_ID}_{mm.CurrentModality}.csv");
 
+            // Write the CSV header
+            using (StreamWriter writer = new StreamWriter(filePath, append: false))
+            {
+                writer.WriteLine("Time,LeftPupilDiameter,RightPupilDiameter");
+            }
+        }
     }
 
     private void Update()
@@ -82,12 +83,15 @@ public class pupildata_recording : MonoBehaviour
                 float leftPupilDiameter = eyeMeasurementsList[i].leftPupilDiameterInMM;
                 float rightPupilDiameter = eyeMeasurementsList[i].rightPupilDiameterInMM;
 
-                elapsedTime = (gazeDataList[i].captureTime / 1e6) - recordingStartTime;  // Convert Varjo timestamp from nanoseconds to milliseconds
-                Debug.Log(elapsedTime);
-                using (StreamWriter writer = new StreamWriter(filePath, append: true))
+                if (leftPupilDiameter >= 1.2f && rightPupilDiameter >= 1.2f)
                 {
-                    // Write the sample in the CSV file
-                    writer.WriteLine($"{elapsedTime},{leftPupilDiameter},{rightPupilDiameter}");
+                    elapsedTime = (gazeDataList[i].captureTime / 1e6) - recordingStartTime;
+
+                    using (StreamWriter writer = new StreamWriter(filePath, append: true))
+                    {
+                        // Write the sample in the CSV file
+                        writer.WriteLine($"{elapsedTime},{leftPupilDiameter},{rightPupilDiameter}");
+                    }
                 }
             }
         }

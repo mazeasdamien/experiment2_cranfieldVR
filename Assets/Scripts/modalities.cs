@@ -47,6 +47,7 @@ public class modalities : MonoBehaviour
     private Coroutine countdownCoroutine;
     public meshKinect mk;
     public bool countdownFinish;
+    public bool isInstruction;
 
     [System.Serializable]
     public class ParticipantData
@@ -73,7 +74,7 @@ public class modalities : MonoBehaviour
     public enum ModalityModel
     {
         nothing,
-        trial,
+        TRIAL,
         DD,
         DDD,
         DDDDD,
@@ -204,12 +205,16 @@ public class modalities : MonoBehaviour
         string fileName = $"participant_{par_ID}_data.csv";
         string filePath = Path.Combine(folderPath, fileName);
         string varjoTimeString = varjoDateTime?.TimeOfDay.ToString(@"hh\:mm\:ss");
+
         using (StreamWriter sw = new StreamWriter(filePath, true))
         {
-            string nextModalityName = experimentFlow.modalities[currentModalityIndex + 1].name;
-            sw.WriteLine($"{pr.elapsedTime},{varjoTimeString},{nextModalityName}");
+            string nextModalityName = currentModalityIndex + 1 < experimentFlow.modalities.Length
+                ? experimentFlow.modalities[currentModalityIndex + 1].name
+                : "End of Experiment";
+            sw.WriteLine($"{varjoTimeString},{nextModalityName}");
         }
     }
+
 
     private void SaveTaskToCSV(string shapeSelected, string colorSelected, DateTime? varjoDateTime)
     {
@@ -225,11 +230,11 @@ public class modalities : MonoBehaviour
         {
             if (!countdownFinish)
             {
-                sw.WriteLine($"{pr.elapsedTime},{varjoTimeString},{shapeSelected}/{colorSelected},{elapsed.TotalSeconds}");
+                sw.WriteLine($"{varjoTimeString},{shapeSelected}/{colorSelected},{elapsed.TotalSeconds}");
             }
             else
             {
-                sw.WriteLine($"{pr.elapsedTime},{varjoTimeString},{shapeSelected}/{colorSelected},{elapsed.TotalSeconds},countdown finished");
+                sw.WriteLine($"{varjoTimeString},{shapeSelected}/{colorSelected},{elapsed.TotalSeconds},countdown finished");
             }
         }
     }
@@ -273,6 +278,7 @@ public class modalities : MonoBehaviour
         switch (currentTask.panelType)
         {
             case "instruction":
+                isInstruction = true;
                 foreach (var g in toHide)
                 {
                     g.SetActive(true);
@@ -286,6 +292,7 @@ public class modalities : MonoBehaviour
                 lr.enabled = true;
                 break;
             case "questionnaire":
+                isInstruction = false;
                 foreach (var g in toHide)
                 {
                     g.SetActive(false);
@@ -308,6 +315,7 @@ public class modalities : MonoBehaviour
         if (CurrentTask == TaskType.start)
         {
             pr.CreateCSV();
+            pr.isRecording = true;
             startTaskDateTime = varjoDateTime;
         }
 
@@ -317,18 +325,13 @@ public class modalities : MonoBehaviour
             fanucHandler.kinect_cursor.rotation = fanucHandler.initialRotation;
             fanucHandler.SendMessageToServer("home");
 
-            // Start the countdown
-            if (currentModality == ModalityType.TRIAL)
-            {
-                StartOrResetCountdown(180);
-            }
-            else
-            {
-                StartOrResetCountdown(60);
-            }
+            StartOrResetCountdown(63);
         }
         else if (CurrentTask == TaskType.t3)
         {
+            pr.isRecording = false;
+            fanucHandler.kinect_cursor.position = fanucHandler.initialPosition;
+            fanucHandler.kinect_cursor.rotation = fanucHandler.initialRotation;
             fanucHandler.SendMessageToServer("home");
             TurnOffCountdown();
         }
@@ -353,6 +356,7 @@ public class modalities : MonoBehaviour
             currentModalityIndex++;
 
         }
+
         if (currentModalityIndex >= experimentFlow.modalities.Length)
         {
             StartCoroutine(EndExperiment());
@@ -482,7 +486,7 @@ public class modalities : MonoBehaviour
     {
         switch (model)
         {
-            case ModalityModel.trial:
+            case ModalityModel.TRIAL:
                 trial.SetActive(true);
                 DD.SetActive(false);
                 DDD.SetActive(false);
@@ -548,7 +552,7 @@ public class modalities : MonoBehaviour
                 usePT = true;
                 break;
             case ModalityType.AV:
-                feed2D.SetActive(false);
+                feed2D.SetActive(true);
                 useMarker = true;
                 usePT = false;
                 break;
