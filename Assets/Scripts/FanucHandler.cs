@@ -49,6 +49,7 @@ namespace Telexistence
         private Quaternion targetRobotRotation;
 
         public TextMeshProUGUI resultText;
+        public lastSafety lastSafety;
         //private StreamWriter csvWriter;
         //private string csvFilePath;
         //private int sampleId = 0;
@@ -110,10 +111,12 @@ namespace Telexistence
         {
             while (isRunning)
             {
-                    float yRotation = kinect_cursor.localRotation.eulerAngles.y;
+                float yRotation = kinect_cursor.localRotation.eulerAngles.y;
 
-                    // Check if yRotation is within the desired range
-                    if (yRotation >= 5 && yRotation <= 70)
+                // Check if yRotation is within the desired range
+                if (yRotation >= 5 && yRotation <= 70)
+                {
+                    if (lastSafety.hitRoof)
                     {
                         isYRotationInRange = true; // Update bool
                         // Convert rotation to Fanuc WPR representation
@@ -133,14 +136,14 @@ namespace Telexistence
                             }
                         }
                     }
-                    else
-                    {
-                        isYRotationInRange = false; // Update bool
-                    }
+                }
+                else
+                {
+                    isYRotationInRange = false; // Update bool
+                }
                 // Wait for a fixed time interval before sending the next update
                 yield return new WaitForSeconds(0.2f);
             }
-
         }
 
         public void SendMessageToServer(string message)

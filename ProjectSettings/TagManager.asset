@@ -10,6 +10,7 @@ TagManager:
   - btn_photo
   - Shape
   - Color
+  - Roof
   layers:
   - Default
   - TransparentFX

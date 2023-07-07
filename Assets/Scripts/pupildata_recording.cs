@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -14,9 +15,14 @@ public class pupildata_recording : MonoBehaviour
     public bool isFrequencySet;
 
     public double elapsedTime;
-
+    public AudioClip startRecordingSound;
+    public AudioClip endRecordingSound;
+    private AudioSource audioSource;
+    private bool isF9Recording = false;
     void Start()
     {
+        audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.clip = endRecordingSound;
         isFilterSet = SetGazeOutputFilterType(GazeOutputFilterType.Standard);
         isFrequencySet = SetGazeOutputFrequency(GazeOutputFrequency.Frequency100Hz);
     }
@@ -37,6 +43,10 @@ public class pupildata_recording : MonoBehaviour
 
     private void Update()
     {
+        if (Input.GetKeyUp(KeyCode.F9) && !isF9Recording)
+        {
+            StartCoroutine(RecordForDuration(60.0f)); // 60 seconds
+        }
         if (isRecording)
         {
             RecordData();
@@ -45,6 +55,25 @@ public class pupildata_recording : MonoBehaviour
         {
             StopRecording();
         }
+    }
+
+    IEnumerator RecordForDuration(float duration)
+    {
+        isF9Recording = true;
+        isRecording = true;
+        filePath = Path.Combine(Application.dataPath, "Participants_data", $"participant_{mm.par_ID}", $"BASELESS_{mm.par_ID}.csv");
+        CreateCSV();
+
+        audioSource.clip = startRecordingSound;
+        audioSource.Play();
+
+        yield return new WaitForSeconds(duration);
+
+        isRecording = false;
+        isF9Recording = false;
+
+        audioSource.clip = endRecordingSound;
+        audioSource.Play();
     }
 
     void StopRecording()
