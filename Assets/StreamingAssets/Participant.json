@@ -1,6 +1,7 @@
 {
   "participant": {
     "participantID": "0",
-    "orderID": "3"
+    "orderID": "3",
+	"langue": "FR"
   }
 }

@@ -34,6 +34,7 @@ namespace VarjoExample
         private Vector3 lastReachablePosition;
         private GameObject instantiatedPrefab;
         private Quaternion lastReachableRotation;
+        public lastSafety roof;
 
         private void Start()
         {
@@ -79,7 +80,7 @@ namespace VarjoExample
             transform.position = new Vector3(x, y, z);
 
 
-            if (!fanucHandler.messageReachability || !fanucHandler.isYRotationInRange)
+            if (!fanucHandler.messageReachability || !fanucHandler.isYRotationInRange || !roof.hitRoof)
             {
                 // Change the controller's material to notPossible
                 vibrationController.TurnOnHaptic();

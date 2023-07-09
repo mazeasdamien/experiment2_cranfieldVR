@@ -33,7 +33,7 @@ namespace Telexistence
         private GameObject instantiatedPrefabL = null;
         private GameObject instantiatedBigBox = null;
         public RawImage outputSnapshot;
-        public modalities modalities;
+        public modalities m;
         public LaserPointer laser;
 
         private void Start()
@@ -68,6 +68,32 @@ namespace Telexistence
 
         private void Update()
         {
+            if (m.CurrentModality != modalities.ModalityType.AV)
+            {
+                if (instantiatedPrefabL != null)
+                {
+                    Destroy(instantiatedPrefabL);
+                }
+                if (instantiatedBigBox != null)
+                {
+                    Destroy(instantiatedBigBox);
+                }
+            }
+            else
+            {
+                if (m.CurrentTask == modalities.TaskType.questions)
+                {
+                    if (instantiatedPrefabL != null)
+                    {
+                        Destroy(instantiatedPrefabL);
+                    }
+                    if (instantiatedBigBox != null)
+                    {
+                        Destroy(instantiatedBigBox);
+                    }
+                }
+            }
+
             using (Capture capture = kinect.GetCapture())
             {
                 Microsoft.Azure.Kinect.Sensor.Image colorImage = capture.Color;
@@ -100,7 +126,7 @@ namespace Telexistence
                         // Cleanup
                         pinnedArray.Free();
 
-                        if (modalities.useMarker)
+                        if (m.useMarker)
                         {
 
                             CvAruco.DetectMarkers(bgrMat, arucoDictionary, out var corners, out var ids, detectorParameters, out var rejectedPoints);

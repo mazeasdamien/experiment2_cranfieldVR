@@ -6,7 +6,6 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using UnityEngine.VFX;
-using Varjo;
 using Varjo.XR;
 using Telexistence;
 
@@ -37,6 +36,7 @@ public class modalities : MonoBehaviour
     public FanucHandler fanucHandler;
     public int par_ID;
     public int modalities_order;
+    public string currentLanguage;
 
     public DateTime? varjoDateTime;
     public DateTime? startTaskDateTime;
@@ -55,6 +55,7 @@ public class modalities : MonoBehaviour
     {
         public string participantID;
         public string orderID;
+        public string langue;
     }
 
     [System.Serializable]
@@ -155,6 +156,7 @@ public class modalities : MonoBehaviour
         experimentFlow = JsonUtility.FromJson<ExperimentFlow>(jsonString1);
         par_ID = int.Parse(data.participant.participantID);
         modalities_order = int.Parse(data.participant.orderID);
+        currentLanguage = data.participant.langue;
         switch (modalities_order)
         {
             case 1:
@@ -216,7 +218,6 @@ public class modalities : MonoBehaviour
         }
     }
 
-
     private void SaveTaskToCSV(string shapeSelected, string colorSelected, DateTime? varjoDateTime)
     {
         string folderPath = Path.Combine(Application.dataPath, "Participants_data", $"participant_{par_ID}");
@@ -225,7 +226,6 @@ public class modalities : MonoBehaviour
         string filePath = Path.Combine(folderPath, fileName);
         TimeSpan elapsed = varjoDateTime.Value - startTaskDateTime.Value;
         string varjoTimeString = varjoDateTime?.TimeOfDay.ToString(@"hh\:mm\:ss");
-
 
         using (StreamWriter sw = new StreamWriter(filePath, true))
         {
@@ -266,7 +266,7 @@ public class modalities : MonoBehaviour
         CurrentModel = model;
 
         info.text = currentModality.name + " " + currentTask.taskName;
-        DistanceText.text = currentTask.distance;
+        DistanceText.text = "Between: " + currentTask.distance;
         btn_NEXT_TASK.GetComponentInChildren<TextMeshProUGUI>().text = currentTask.mainButtonText;
         foreach (var button in shape)
         {
@@ -349,7 +349,6 @@ public class modalities : MonoBehaviour
         {
             Modality currentModality = experimentFlow.modalities[currentModalityIndex];
 
-            // Save the modality change and questionnaire results to CSV.
             SaveDataToCSV(varjoDateTime);
             if (currentModality.name != "TRIAL")
             {
@@ -374,30 +373,23 @@ public class modalities : MonoBehaviour
 
     private void TurnOffCountdown()
     {
-        // Stop the coroutine if it's running
         if (countdownCoroutine != null)
         {
             StopCoroutine(countdownCoroutine);
             countdownCoroutine = null;
         }
-
-        // Stop countdown sound
         StopCountdownSound();
     }
 
-    // Call this function to start or reset the countdown coroutine
     private void StartOrResetCountdown(int countdownTime)
     {
         StopCountdownSound();
 
-        // Stop the previous coroutine if it's running
         if (countdownCoroutine != null)
         {
             StopCoroutine(countdownCoroutine);
             countdownCoroutine = null;
         }
-
-        // Start a new coroutine
         countdownCoroutine = StartCoroutine(StartCountdown(countdownTime));
     }
 
@@ -408,12 +400,10 @@ public class modalities : MonoBehaviour
         {
             countdownText.text = countdownTime.ToString();
 
-            // Change text color based on time left
             if (countdownTime <= 8)
             {
                 countdownText.color = Color.red;
 
-                // Play countdown sound when there are exactly 8 seconds left
                 if (countdownTime == 8)
                 {
                     audioSource.PlayOneShot(countdownSound);
@@ -446,7 +436,6 @@ public class modalities : MonoBehaviour
             audioSource.Stop();
         }
     }
-
 
     IEnumerator EndExperiment()
     {

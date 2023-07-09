@@ -10,8 +10,10 @@ using System;
 public class QuestionData
 {
     public int question_id;
-    public string question;
-    public List<string> responses;
+    public string questionEN;
+    public string questionFR;
+    public List<string> responsesEN;
+    public List<string> responsesFR;
     public int min_value_slider;
     public int max_value_slider;
 }
@@ -67,18 +69,31 @@ public class TLXQuestionnaire : MonoBehaviour
             return;
         }
 
-        currentQuestionIndex = questionIndex;  // Add this line
+        currentQuestionIndex = questionIndex;
 
         QuestionData questionData = questions[questionIndex];
-        questionText.text = questionData.question;
-        left_text.text = questionData.responses[0];
-        right_text.text = questionData.responses[1];
+
+        // Depending on the current language, display the appropriate question and responses
+        if (m.currentLanguage == "EN")
+        {
+            questionText.text = questionData.questionEN;
+            left_text.text = questionData.responsesEN[0];
+            right_text.text = questionData.responsesEN[1];
+        }
+        else if (m.currentLanguage == "FR")
+        {
+            questionText.text = questionData.questionFR;
+            left_text.text = questionData.responsesFR[0];
+            right_text.text = questionData.responsesFR[1];
+        }
+
         slider.minValue = questionData.min_value_slider;
         slider.maxValue = questionData.max_value_slider;
         if (questionData.max_value_slider == 21)
         { slider.value = 11; }
         else { slider.value = 3; }
     }
+
 
 
     public void RecordAnswer()

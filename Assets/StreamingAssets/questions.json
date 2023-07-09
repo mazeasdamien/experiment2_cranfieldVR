@@ -2,113 +2,145 @@
   "Questions": [
     {
       "question_id": 1,
-      "question": "Mental Demand: How mentally demanding was the Inspection task?",
-      "responses": ["Very Low", "Very High"],
+      "questionEN": "Mental Demand: How mentally demanding was the Inspection task?",
+      "questionFR": "Exigence mentale : Dans quelle mesure la tâche d'inspection était-elle exigeante sur le plan mental?",
+      "responsesEN": ["Very Low", "Very High"],
+      "responsesFR": ["Très faible", "Très élevé"],
       "min_value_slider": 1,
       "max_value_slider": 21
     },
     {
       "question_id": 2,
-      "question": "Physical Demand: How physically demanding was the Inspection task?",
-      "responses": ["Very Low", "Very High"],
+      "questionEN": "Physical Demand: How physically demanding was the Inspection task?",
+      "questionFR": "Exigence physique : Dans quelle mesure la tâche d'inspection était-elle physiquement exigeante?",
+      "responsesEN": ["Very Low", "Very High"],
+      "responsesFR": ["Très faible", "Très élevé"],
       "min_value_slider": 1,
       "max_value_slider": 21
     },
     {
       "question_id": 3,
-      "question": "Temporal Demand: How hurried or rushed was the pace of the Inspection task?",
-      "responses": ["Very Low", "Very High"],
+      "questionEN": "Temporal Demand: How hurried or rushed was the pace of the Inspection task?",
+      "questionFR": "Demande temporelle : Dans quelle mesure le rythme de la tâche d'inspection était-il pressé ou précipité?",
+      "responsesEN": ["Very Low", "Very High"],
+      "responsesFR": ["Très faible", "Très élevé"],
       "min_value_slider": 1,
       "max_value_slider": 21
     },
     {
       "question_id": 4,
-      "question": "Performance: How successful were you in accomplishing the Inspection task you were asked to do?",
-      "responses": ["Perfect", "Failure"],
+      "questionEN": "Performance: How successful were you in accomplishing the Inspection tasks you were asked to do?",
+      "questionFR": "Performance : Dans quelle mesure avez-vous réussi à accomplir les tâches d'inspection qui vous ont été demandées?",
+      "responsesEN": ["Perfect", "Failure"],
+      "responsesFR": ["Parfait", "Échec"],
       "min_value_slider": 1,
       "max_value_slider": 21
     },
     {
       "question_id": 5,
-      "question": "Effort: How hard did you have to work to accomplish your level of performance?",
-      "responses": ["Very Low", "Very High"],
+      "questionEN": "Effort: How hard did you have to work to accomplish your level of performance?",
+      "questionFR": "Effort : Quels efforts avez-vous dû fournir pour atteindre votre niveau de performance?",
+      "responsesEN": ["Very Low", "Very High"],
+      "responsesFR": ["Très faible", "Très élevé"],
       "min_value_slider": 1,
       "max_value_slider": 21
     },
     {
       "question_id": 6,
-      "question": "Frustration: How insecure, discouraged, irritated, stressed, and annoyed were you?",
-      "responses": ["Very Low", "Very High"],
+      "questionEN": "Frustration: How insecure, discouraged, irritated, stressed, and annoyed were you?",
+      "questionFR": "Frustration : A quel point étiez-vous peu sûr de vous, découragé, irrité, stressé et ennuyé?",
+      "responsesEN": [ "Very Low", "Very High" ],
+      "responsesFR": [ "Très faible", "Très élevé" ],
       "min_value_slider": 1,
       "max_value_slider": 21
     },
     {
       "question_id": 7,
-      "question": "I think that I would like to use this data visualization modality frequently.",
-      "responses": ["Strongly disagree", "Strongly agree"],
+      "questionEN": "I think that I would like to use this data visualization modality frequently.",
+      "questionFR": "Je pense que j'aimerais utiliser fréquemment cette modalité de visualisation des données.",
+      "responsesEN": [ "Strongly disagree", "Strongly agree" ],
+      "responsesFR": [ "Pas du tout d'accord", "Tout à fait d'accord" ],
       "min_value_slider": 1,
       "max_value_slider": 5
     },
     {
       "question_id": 8,
-      "question": "I found the data visualization modality unnecessarily complex.",
-      "responses": ["Strongly disagree", "Strongly agree"],
+      "questionEN": "I found the data visualization modality unnecessarily complex.",
+      "questionFR": "J'ai trouvé la modalité de visualisation des données inutilement complexe.",
+      "responsesEN": ["Strongly disagree", "Strongly agree"],
+      "responsesFR": ["Pas du tout d'accord", "Tout à fait d'accord"],
       "min_value_slider": 1,
       "max_value_slider": 5
     },
     {
       "question_id": 9,
-      "question": "I thought the data visualization modality was easy to use.",
-      "responses": ["Strongly disagree", "Strongly agree"],
+      "questionEN": "I thought the data visualization modality was easy to use.",
+      "questionFR": "J'ai trouvé que la modalité de visualisation des données était facile à utiliser.",
+      "responsesEN": ["Strongly disagree", "Strongly agree"],
+      "responsesFR": ["Pas du tout d'accord", "Tout à fait d'accord"],
       "min_value_slider": 1,
       "max_value_slider": 5
     },
     {
       "question_id": 10,
-      "question": "I think that I would need the support of a technical person to be able to use this data visualization modality.",
-      "responses": ["Strongly disagree", "Strongly agree"],
+      "questionEN": "I think that I would need the support of a technical person to be able to use this data visualization modality.",
+      "questionFR": "Je pense que j'aurais besoin du soutien d'une personne technique pour pouvoir utiliser cette modalité de visualisation des données.",
+      "responsesEN": ["Strongly disagree", "Strongly agree"],
+      "responsesFR": ["Pas du tout d'accord", "Tout à fait d'accord"],
       "min_value_slider": 1,
       "max_value_slider": 5
     },
     {
       "question_id": 11,
-      "question": "I found the various features of this data visualization modality were well integrated.",
-      "responses": ["Strongly disagree", "Strongly agree"],
+      "questionEN": "I found the various features of this data visualization modality were well integrated.",
+      "questionFR": "J'ai trouvé que les différentes caractéristiques de cette modalité de visualisation des données étaient bien intégrées.",
+      "responsesEN": ["Strongly disagree", "Strongly agree"],
+      "responsesFR": ["Pas du tout d'accord", "Tout à fait d'accord"],
       "min_value_slider": 1,
       "max_value_slider": 5
     },
     {
       "question_id": 12,
-      "question": "I thought there was too much inconsistency in this data visualization modality.",
-      "responses": ["Strongly disagree", "Strongly agree"],
+      "questionEN": "I thought there was too much inconsistency in this data visualization modality.",
+      "questionFR": "J'ai trouvé qu'il y avait trop d'incohérence dans cette modalité de visualisation des données.",
+      "responsesEN": ["Strongly disagree", "Strongly agree"],
+      "responsesFR": ["Pas du tout d'accord", "Tout à fait d'accord"],
       "min_value_slider": 1,
       "max_value_slider": 5
     },
     {
       "question_id": 13,
-      "question": "I would imagine that most people would learn to use this data visualization modality very quickly.",
-      "responses": ["Strongly disagree", "Strongly agree"],
+      "questionEN": "I would imagine that most people would learn to use this data visualization modality very quickly.",
+      "questionFR": "J'imagine que la plupart des gens apprendront très rapidement à utiliser cette modalité de visualisation des données.",
+      "responsesEN": ["Strongly disagree", "Strongly agree"],
+      "responsesFR": ["Pas du tout d'accord", "Tout à fait d'accord"],
       "min_value_slider": 1,
       "max_value_slider": 5
     },
     {
       "question_id": 14,
-      "question": "I found the data visualization modality very cumbersome to use.",
-      "responses": ["Strongly disagree", "Strongly agree"],
+      "questionEN": "I found the data visualization modality very cumbersome to use.",
+      "questionFR": "J'ai trouvé la modalité de visualisation des données très lourde à utiliser.",
+      "responsesEN": [ "Strongly disagree", "Strongly agree" ],
+      "responsesFR": [ "Pas du tout d'accord", "Tout à fait d'accord" ],
       "min_value_slider": 1,
       "max_value_slider": 5
     },
     {
       "question_id": 15,
-      "question": "I felt very confident using the data visualization modality.",
-      "responses": ["Strongly disagree", "Strongly agree"],
+      "questionEN": "I felt very confident using the data visualization modality.",
+      "questionFR": "Je me suis sentie très à l'aise dans l'utilisation de la modalité de visualisation des données.",
+      "responsesEN": ["Strongly disagree", "Strongly agree"],
+      "responsesFR": ["Pas du tout d'accord", "Tout à fait d'accord"],
       "min_value_slider": 1,
       "max_value_slider": 5
     },
     {
       "question_id": 16,
-      "question": "I needed to learn a lot of things before I could get going with this data visualization modality.",
-      "responses": ["Strongly disagree", "Strongly agree"],
+      "questionEN": "I needed to learn a lot of things before I could get going with this data visualization modality.",
+      "questionFR": "J'ai dû apprendre beaucoup de choses avant de pouvoir me lancer dans cette modalité de visualisation des données.",
+      "responsesEN": ["Strongly disagree", "Strongly agree"],
+      "responsesFR": ["Pas du tout d'accord", "Tout à fait d'accord"],
       "min_value_slider": 1,
       "max_value_slider": 5
     }
