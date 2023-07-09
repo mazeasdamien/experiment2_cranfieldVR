@@ -157,8 +157,6 @@ public class LaserPointer : MonoBehaviour
                         {
                             case "NEXT_TASK":
                                 hasBeenPressed = true;
-                                if (!nextButtonCooldown)
-                                {
                                     if (mm.CurrentTask != modalities.TaskType.start)
                                     {
                                         if (shapeSelected != null && colorSelected != null)
@@ -192,8 +190,6 @@ public class LaserPointer : MonoBehaviour
                                             }
                                         }
                                     }
-                                    nextButtonCooldown = true;
-                                }
                                 else
                                 {
                                     mm.NextTask();

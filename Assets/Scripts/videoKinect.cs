@@ -72,11 +72,6 @@ namespace Telexistence
             {
                 outputImage.gameObject.SetActive(false);
             }
-            else
-            {
-                outputImage.gameObject.SetActive(true);
-            }
-
 
                 if (m.CurrentModality != modalities.ModalityType.AV)
             {
@@ -110,30 +105,22 @@ namespace Telexistence
 
                 if (colorImage != null && colorImage.WidthPixels > 0 && colorImage.HeightPixels > 0)
                 {
-                    // Create the texture if it's not already created
                     if (texture == null)
                     {
                         texture = new Texture2D(colorImage.WidthPixels, colorImage.HeightPixels, TextureFormat.RGB24, false);
                     }
-
-                    // Update colorData with the latest pixel data
                     colorData = colorImage.GetPixels<BGRA>().ToArray();
-
-                    // Update colorMat with the latest colorData
                     GCHandle pinnedArray = GCHandle.Alloc(colorData, GCHandleType.Pinned);
                     IntPtr colorDataPtr = pinnedArray.AddrOfPinnedObject();
                     using (Mat colourMat = new Mat(colorImage.HeightPixels, colorImage.WidthPixels, MatType.CV_8UC4, colorDataPtr))
                     {
-                        // Convert BGRA to BGR format
                         Cv2.CvtColor(colourMat, bgrMat, ColorConversionCodes.BGRA2BGR);
                         UpdateTexture(bgrMat, texture);
-                        // Apply the texture to the outputImage RawImage
                         outputImage.texture = texture;
                         if (outputSnapshot != null)
                         {
                             outputSnapshot.texture = texture;
                         }
-                        // Cleanup
                         pinnedArray.Free();
 
                         if (m.useMarker)
@@ -148,78 +135,53 @@ namespace Telexistence
                                 using (Mat tvecsMat = new Mat())
                                 {
                                     CvAruco.EstimatePoseSingleMarkers(corners, markerLength, cameraMatrix, distCoeffs, rvecsMat, tvecsMat);
-
-                                    // Keep track of the ids that were detected in this frame
                                     HashSet<int> detectedIds = new HashSet<int>();
 
                                     for (int i = 0; i < ids.Length; i++)
                                     {
                                         int id = ids[i];
-
-                                        if (id == 14)  // Instantiate only for marker with ID 14
+                                        if (id == 14)
                                         {
                                             detectedIds.Add(id);
 
                                             Vec3d rvec = rvecsMat.Get<Vec3d>(i);
                                             Vec3d tvec = tvecsMat.Get<Vec3d>(i);
-
-                                            // Convert rotation vector to rotation matrix
                                             Mat rotationMatrix = new Mat();
                                             Cv2.Rodrigues(rvec, rotationMatrix);
-
-                                            // Get marker pose in Kinect space
-                                            Vector3 markerPositionInKinectSpace = new Vector3(-(float)tvec[0], (float)tvec[1], (float)tvec[2]); // If Y axis needs to be flipped
-
-                                            // Get the transform from Kinect space to Unity world space
+                                            Vector3 markerPositionInKinectSpace = new Vector3(-(float)tvec[0], (float)tvec[1], (float)tvec[2]);
                                             Matrix4x4 kinectToWorld = kinectGameObject.transform.localToWorldMatrix;
-
-                                            // Transform the marker pose from Kinect space to Unity world space
                                             Vector3 markerPositionInWorldSpace = kinectToWorld.MultiplyPoint3x4(markerPositionInKinectSpace);
-
                                             DrawAxis(bgrMat, rvec, tvec, markerLength, cameraMatrix, distCoeffs);
-                                            // Instantiate the marker only if it hasn't been created yet
                                             if (!markerCreated1)
                                             {
                                                 instantiatedPrefabL = Instantiate(prefabL, markerPositionInWorldSpace, Quaternion.identity);
-                                                markerCreated1 = true;  // Set the markerCreated to true, so we know it's been created.
+                                                markerCreated1 = true;
                                             }
                                             else
                                             {
-                                                // If the marker has already been created, just update its position
                                                 instantiatedPrefabL.transform.position = markerPositionInWorldSpace;
                                             }
                                         }
-                                        else if (id == 16) // Instantiate only for marker with ID 16
+                                        else if (id == 16)
                                         {
                                             detectedIds.Add(id);
 
                                             Vec3d rvec = rvecsMat.Get<Vec3d>(i);
                                             Vec3d tvec = tvecsMat.Get<Vec3d>(i);
-
-                                            // Convert rotation vector to rotation matrix
                                             Mat rotationMatrix = new Mat();
                                             Cv2.Rodrigues(rvec, rotationMatrix);
-
-                                            // Get marker pose in Kinect space
                                             Vector3 markerPositionInKinectSpace = new Vector3(-(float)tvec[0], (float)tvec[1], (float)tvec[2]);
-
-                                            // Get the transform from Kinect space to Unity world space
                                             Matrix4x4 kinectToWorld = kinectGameObject.transform.localToWorldMatrix;
-
-                                            // Transform the marker pose from Kinect space to Unity world space
                                             Vector3 markerPositionInWorldSpace = kinectToWorld.MultiplyPoint3x4(markerPositionInKinectSpace);
 
                                             DrawAxis(bgrMat, rvec, tvec, markerLength, cameraMatrix, distCoeffs);
-
-                                            // Instantiate the marker only if it hasn't been created yet
-                                            if (!markerCreated2) // Assuming you have marker16Created as a boolean variable
+                                            if (!markerCreated2)
                                             {
-                                                instantiatedBigBox = Instantiate(prefaBigBox, markerPositionInWorldSpace, Quaternion.identity); // Assuming prefab16 is the new prefab for marker ID 16
+                                                instantiatedBigBox = Instantiate(prefaBigBox, markerPositionInWorldSpace, Quaternion.identity);
                                                 markerCreated2 = true;
                                             }
                                             else
                                             {
-                                                // If the marker has already been created, just update its position
                                                 instantiatedBigBox.transform.position = markerPositionInWorldSpace;
                                             }
                                         }
@@ -360,7 +322,7 @@ namespace Telexistence
             texture.Apply();
 
             Color red = new Color(1, 0, 0, 1);
-            int crossLength = width / 25; // For example
+            int crossLength = width / 30; // For example
 
             // Center position of the texture
             int centerX = width / 2;
