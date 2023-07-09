@@ -68,7 +68,17 @@ namespace Telexistence
 
         private void Update()
         {
-            if (m.CurrentModality != modalities.ModalityType.AV)
+            if (m.CurrentTask == modalities.TaskType.questions)
+            {
+                outputImage.gameObject.SetActive(false);
+            }
+            else
+            {
+                outputImage.gameObject.SetActive(true);
+            }
+
+
+                if (m.CurrentModality != modalities.ModalityType.AV)
             {
                 if (instantiatedPrefabL != null)
                 {
@@ -345,40 +355,40 @@ namespace Telexistence
             {
                 throw new ArgumentException("Input Mat must have 3 or 4 channels.");
             }
-
             // Load the byte array into the texture
             texture.LoadRawTextureData(data);
             texture.Apply();
 
-            // Define the red color
             Color red = new Color(1, 0, 0, 1);
-
-            // Define cross thickness and length
-            int crossThickness = 1; // For example
-            int crossLength = width / 20; // For example
+            int crossLength = width / 25; // For example
 
             // Center position of the texture
             int centerX = width / 2;
             int centerY = height / 2;
 
-            // Draw a red cross at the center of the texture
-            for (int i = -crossLength; i <= crossLength; i++)
-            {
-                for (int j = -crossThickness; j <= crossThickness; j++)
-                {
-                    // Horizontal line
-                    int clampedXH = Mathf.Clamp(centerX + i, 0, width - 1);
-                    int clampedYH = Mathf.Clamp(centerY + j, 0, height - 1);
-                    texture.SetPixel(clampedXH, clampedYH, red);
+            int radius = crossLength;
+            int thickness = 3; // Circle thickness
 
-                    // Vertical line
-                    int clampedXV = Mathf.Clamp(centerX + j, 0, width - 1);
-                    int clampedYV = Mathf.Clamp(centerY + i, 0, height - 1);
-                    texture.SetPixel(clampedXV, clampedYV, red);
+            for (int y = -radius; y <= radius; y++)
+            {
+                for (int x = -radius; x <= radius; x++)
+                {
+                    // Check if the current pixel is on the boundary of the circle
+                    int distanceSquared = x * x + y * y;
+                    if (distanceSquared <= (radius * radius) && distanceSquared >= ((radius - thickness) * (radius - thickness)))
+                    {
+                        // Clamped position
+                        int clampedX = Mathf.Clamp(centerX + x, 0, width - 1);
+                        int clampedY = Mathf.Clamp(centerY + y, 0, height - 1);
+
+                        // Set the pixel color
+                        texture.SetPixel(clampedX, clampedY, red);
+                    }
                 }
             }
 
             texture.Apply();
+
         }
 
         private void OnDestroy()

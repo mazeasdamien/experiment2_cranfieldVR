@@ -31,7 +31,9 @@ public class pupildata_recording : MonoBehaviour
     {
         if (mm.CurrentModality != modalities.ModalityType.TRIAL)
         {
-            filePath = Path.Combine(Application.dataPath, "Participants_data", $"participant_{mm.par_ID}", $"eye_tracking_data_{mm.par_ID}_{mm.CurrentModality}.csv");
+            string directoryPath = Path.Combine(Application.dataPath, "Participants_data", $"participant_{mm.par_ID}");
+            Directory.CreateDirectory(directoryPath); // This line will create the directory if it does not exist.
+            filePath = Path.Combine(directoryPath, $"eye_tracking_data_{mm.par_ID}_{mm.CurrentModality}.csv");
 
             // Write the CSV header
             using (StreamWriter writer = new StreamWriter(filePath, append: false))
@@ -45,7 +47,7 @@ public class pupildata_recording : MonoBehaviour
     {
         if (Input.GetKeyUp(KeyCode.F9) && !isF9Recording)
         {
-            StartCoroutine(RecordForDuration(60.0f)); // 60 seconds
+            StartCoroutine(RecordForDuration(60f));
         }
         if (isRecording)
         {
@@ -60,13 +62,17 @@ public class pupildata_recording : MonoBehaviour
     IEnumerator RecordForDuration(float duration)
     {
         isF9Recording = true;
-        isRecording = true;
-        filePath = Path.Combine(Application.dataPath, "Participants_data", $"participant_{mm.par_ID}", $"BASELESS_{mm.par_ID}.csv");
-        CreateCSV();
+        string directoryPath = Path.Combine(Application.dataPath, "Participants_data", $"participant_{mm.par_ID}");
+        Directory.CreateDirectory(directoryPath); // This line will create the directory if it does not exist.
+        filePath = Path.Combine(directoryPath, $"BASELINE_participant_{mm.par_ID}.csv");
+        using (StreamWriter writer = new StreamWriter(filePath, append: false))
+        {
+            writer.WriteLine("Time,LeftPupilDiameter,RightPupilDiameter");
+        }
 
         audioSource.clip = startRecordingSound;
         audioSource.Play();
-
+        isRecording = true;
         yield return new WaitForSeconds(duration);
 
         isRecording = false;

@@ -34,6 +34,8 @@ public class LaserPointer : MonoBehaviour
     private bool photoTaken = false;
     public meshKinect mk;
 
+    private bool hasBeenPressed =false;
+
     void Start()
     {
         lineRenderer = GetComponent<LineRenderer>();
@@ -72,11 +74,13 @@ public class LaserPointer : MonoBehaviour
 
                 // Enable the "Next" button after the cooldown period
                 btn_NEXT.interactable = true;
+                btn_NEXT_TASK.interactable = true;
             }
             else
             {
                 // Disable the "Next" button during the cooldown period
                 btn_NEXT.interactable = false;
+                btn_NEXT_TASK.interactable = false;
             }
         }
 
@@ -147,87 +151,102 @@ public class LaserPointer : MonoBehaviour
                         colorSelected = button.gameObject.name;
                     }
 
-                    switch (button.name)
+                    if (hasBeenPressed == false)
                     {
-                        case "NEXT_TASK":
-                            if (mm.CurrentTask != modalities.TaskType.start)
-                            {
-                                if (shapeSelected != null && colorSelected != null)
+                        switch (button.name)
+                        {
+                            case "NEXT_TASK":
+                                hasBeenPressed = true;
+                                if (!nextButtonCooldown)
                                 {
-                                    if (!buttonClicked)
-                                    { 
-                                        if (mm.CurrentModality != modalities.ModalityType.TRIAL)
+                                    if (mm.CurrentTask != modalities.TaskType.start)
+                                    {
+                                        if (shapeSelected != null && colorSelected != null)
                                         {
-                                            if (mm.CurrentTask == modalities.TaskType.t1 || mm.CurrentTask == modalities.TaskType.t2 || mm.CurrentTask == modalities.TaskType.t3)
+                                            if (!buttonClicked)
                                             {
-                                                Texture2D targetTexture1 = targetImage.texture as Texture2D;
-                                                if (targetTexture1 != null)
+                                                if (mm.CurrentModality != modalities.ModalityType.TRIAL)
                                                 {
-                                                    byte[] bytes = targetTexture1.EncodeToJPG();
-                                                    string filename = mm.par_ID + "_" + mm.CurrentModality + "_" + mm.CurrentTask + "_" + mk.midDepthInCm.ToString() + "cm" + ".jpg";
-                                                    string folderPath = Path.Combine(Application.dataPath, "Participants_data", $"participant_{mm.par_ID}");
-                                                    Directory.CreateDirectory(folderPath);
+                                                    if (mm.CurrentTask == modalities.TaskType.t1 || mm.CurrentTask == modalities.TaskType.t2 || mm.CurrentTask == modalities.TaskType.t3)
+                                                    {
+                                                        Texture2D targetTexture1 = targetImage.texture as Texture2D;
+                                                        if (targetTexture1 != null)
+                                                        {
+                                                            byte[] bytes = targetTexture1.EncodeToJPG();
+                                                            string filename = mm.par_ID + "_" + mm.CurrentModality + "_" + mm.CurrentTask + "_" + mk.midDepthInCm.ToString() + "cm" + ".jpg";
+                                                            string folderPath = Path.Combine(Application.dataPath, "Participants_data", $"participant_{mm.par_ID}");
+                                                            Directory.CreateDirectory(folderPath);
 
-                                                    string filePath = Path.Combine(folderPath, filename);
-                                                    File.WriteAllBytes(filePath, bytes);
+                                                            string filePath = Path.Combine(folderPath, filename);
+                                                            File.WriteAllBytes(filePath, bytes);
+                                                        }
+                                                    }
                                                 }
+
+                                                mm.NextTask();
+                                                shapeSelected = null;
+                                                colorSelected = null;
+                                                ResetTargetTexture();
+                                                photoTaken = false;
+                                                buttonClicked = true;
                                             }
                                         }
-
-                                        mm.NextTask();
-                                        shapeSelected = null;
-                                        colorSelected = null;
-                                        ResetTargetTexture();
-                                        photoTaken = false;
-                                        buttonClicked = true;
                                     }
+                                    nextButtonCooldown = true;
                                 }
-                            }
-                            else
-                            {
-                                mm.NextTask();
-                                buttonClicked = true;
-                            }
-                            break;
-                        case "NEXT":
-                            if (!nextButtonCooldown)
-                            {
-                                tLX.NextQuestion();
-                                nextButtonCooldown = true;
-                            }
-                            break;
-                        case "PLUS":
-                            if (!buttonClickedQuestionnaire)
-                            {
-                                slider.value = Mathf.Min(slider.value + 1f, slider.maxValue);
-                                buttonClickedQuestionnaire=true;
-                            }
-                            break;
-                        case "MINUS":
-                            if (!buttonClickedQuestionnaire)
-                            {
-                                slider.value = Mathf.Max(slider.value - 1f, slider.minValue);
-                                buttonClickedQuestionnaire=true;
-                            }
-                            break;
-                        case "PHOTO":
-                            photoTaken = true;
-                            Texture2D sourceTexture = sourceImage.texture as Texture2D;
-                            int middleX = sourceTexture.width / 2;
-                            int middleY = sourceTexture.height / 2;
-                            int size = 200;
-                            int startX = middleX - size / 2;
-                            int startY = middleY - size / 2;
-                            Color[] pixels = sourceTexture.GetPixels(startX, startY, size, size);
-                            Texture2D targetTexture = new Texture2D(size, size);
-                            targetTexture.SetPixels(pixels);
-                            targetTexture.Apply();
-                            targetImage.texture = targetTexture;
-                            break;
+                                else
+                                {
+                                    mm.NextTask();
+                                    buttonClicked = true;
+                                }
+                                break;
+                            case "NEXT":
+                                hasBeenPressed = true;
+                                if (!nextButtonCooldown)
+                                {
+                                    tLX.NextQuestion();
+                                    nextButtonCooldown = true;
+                                }
+                                break;
+                            case "PLUS":
+                                hasBeenPressed = true;
+                                if (!buttonClickedQuestionnaire)
+                                {
+                                    slider.value = Mathf.Min(slider.value + 1f, slider.maxValue);
+                                    buttonClickedQuestionnaire = true;
+                                }
+                                break;
+                            case "MINUS":
+                                hasBeenPressed = true;
+                                if (!buttonClickedQuestionnaire)
+                                {
+                                    slider.value = Mathf.Max(slider.value - 1f, slider.minValue);
+                                    buttonClickedQuestionnaire = true;
+                                }
+                                break;
+                            case "PHOTO":
+                                hasBeenPressed = true;
+                                photoTaken = true;
+                                Texture2D sourceTexture = sourceImage.texture as Texture2D;
+                                int middleX = sourceTexture.width / 2;
+                                int middleY = sourceTexture.height / 2;
+                                int size = 200;
+                                int startX = middleX - size / 2;
+                                int startY = middleY - size / 2;
+                                Color[] pixels = sourceTexture.GetPixels(startX, startY, size, size);
+                                Texture2D targetTexture = new Texture2D(size, size);
+                                targetTexture.SetPixels(pixels);
+                                targetTexture.Apply();
+                                targetImage.texture = targetTexture;
+                                break;
+                        }
                     }
                 }
                 else
-                { buttonClickedQuestionnaire = false; }
+                {
+                    hasBeenPressed = false; 
+                    buttonClickedQuestionnaire = false;
+                }
             }
         }
         else
