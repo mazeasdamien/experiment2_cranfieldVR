@@ -329,7 +329,7 @@ public class modalities : MonoBehaviour
             fanucHandler.kinect_cursor.rotation = fanucHandler.initialRotation;
             fanucHandler.SendMessageToServer("home");
 
-            StartOrResetCountdown(60);
+            StartOrResetCountdown(80);
         }
         else if (CurrentTask == TaskType.t3)
         {
