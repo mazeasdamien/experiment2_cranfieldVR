@@ -41,7 +41,6 @@ public class VibrationController : MonoBehaviour
             {
                 if (capabilities.supportsImpulse)
                 {
-                    uint channel = 0;
                     device.StopHaptics();
                 }
             }

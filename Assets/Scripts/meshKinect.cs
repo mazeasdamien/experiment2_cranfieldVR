@@ -31,8 +31,6 @@ namespace Telexistence
         public GameObject textPrefab;
         public GameObject instantiatedText = null;
         public float textsize;
-
-        private bool hasAppliedLastMesh = false;
         public modalities m;
 
         private BGRA[] colorArray;

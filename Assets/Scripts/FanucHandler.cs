@@ -383,8 +383,6 @@ namespace Telexistence
                 _client.Close();
                 _client = null;
             }
-
-            //csvWriter.Close();
         }
     }
 }
