@@ -23,11 +23,9 @@ public class PositionData
 
 public class pathUpdater : MonoBehaviour
 {
-    public LineRenderer lineRenderer;
     public GameObject prefab;
     private List<GameObject> gameObjects = new List<GameObject>();
     public GameObject robot_controller;
-    // the speed at which the robot moves between positions
     public float robotSpeed = 1f;
     public float pause = 2f;
     private bool isFollowingPath = false;
@@ -49,18 +47,14 @@ public class pathUpdater : MonoBehaviour
 
         if (!File.Exists(path))
         {
-            File.Create(path).Close(); // Create the file if it does not exist
+            File.Create(path).Close();
         }
 
         string jsonString = File.ReadAllText(path);
         PositionData positionData = JsonUtility.FromJson<PositionData>(jsonString);
-        initialStartPos = robot_controller.transform.position; // start point
-        initialEndPos = robot_controller.transform.position; // end poin
+        initialStartPos = robot_controller.transform.position;
+        initialEndPos = robot_controller.transform.position;
 
-        // Initialize the number of points
-        lineRenderer.positionCount = positionData.positions.Count + 2; // +2 for start and end points
-
-        // Instantiate gameObjects for all positions
         for (int i = 0; i < positionData.positions.Count; i++)
         {
             Vector3 pos = new Vector3(positionData.positions[i].X, positionData.positions[i].Y, positionData.positions[i].Z);
@@ -73,7 +67,7 @@ public class pathUpdater : MonoBehaviour
     {
         if (!File.Exists(path))
         {
-            File.Create(path).Close(); // Create the file if it does not exist
+            File.Create(path).Close();
         }
 
         var lastWriteTime = File.GetLastWriteTimeUtc(path);
@@ -84,7 +78,6 @@ public class pathUpdater : MonoBehaviour
 
             string jsonString = File.ReadAllText(path);
             PositionData positionData = JsonUtility.FromJson<PositionData>(jsonString);
-            lineRenderer.positionCount = positionData.positions.Count + 2;
 
             // Add or remove gameObjects as necessary
             while (gameObjects.Count < positionData.positions.Count)
@@ -100,18 +93,13 @@ public class pathUpdater : MonoBehaviour
                 Destroy(toRemove);
             }
 
-        // Update positions of all gameObjects
-        for (int i = 0; i < positionData.positions.Count; i++)
-        {
-            Vector3 pos = new Vector3(positionData.positions[i].X, positionData.positions[i].Y, positionData.positions[i].Z);
-            lineRenderer.SetPosition(i + 1, pos); // +1 to leave space for the start point
-            gameObjects[i].transform.position = pos;
+            // Update positions of all gameObjects
+            for (int i = 0; i < positionData.positions.Count; i++)
+            {
+                Vector3 pos = new Vector3(positionData.positions[i].X, positionData.positions[i].Y, positionData.positions[i].Z);
+                gameObjects[i].transform.position = pos;
+            }
         }
-
-        // Set start and end points of the LineRenderer
-        lineRenderer.SetPosition(0, initialStartPos); // start point
-        lineRenderer.SetPosition(lineRenderer.positionCount - 1, initialEndPos); // end point
-                    }
     }
 
     // method to start the robot following the path

@@ -18,7 +18,7 @@ namespace Telexistence
         private DetectorParameters detectorParameters;
         private Mat cameraMatrix = new Mat(3, 3, MatType.CV_32FC1);
         private Mat distCoeffs = new Mat(1, 8, MatType.CV_32FC1);
-        public float markerLength = 0.08f;
+        public float markerLength = 0.06f;
         public float captureFrameRate = 24f;
         private BGRA[] colorData;
         private Calibration calibration;
@@ -31,6 +31,7 @@ namespace Telexistence
         public LaserPointer laser;
         public Vector3 markerpos;
         public GameObject cubePrefab;
+        private Dictionary<int, GameObject> markerDict = new Dictionary<int, GameObject>();
 
         private void Start()
         {
@@ -93,6 +94,7 @@ namespace Telexistence
                         pinnedArray.Free();
 
 
+
                         CvAruco.DetectMarkers(bgrMat, arucoDictionary, out var corners, out var ids, detectorParameters, out var rejectedPoints);
                         CvAruco.DrawDetectedMarkers(bgrMat, corners, ids, Scalar.Green);
 
@@ -103,36 +105,41 @@ namespace Telexistence
                             {
                                 CvAruco.EstimatePoseSingleMarkers(corners, markerLength, cameraMatrix, distCoeffs, rvecsMat, tvecsMat);
 
-                                // Keep track of the ids that were detected in this frame
-                                HashSet<int> detectedIds = new HashSet<int>();
-
                                 for (int i = 0; i < ids.Length; i++)
                                 {
                                     int id = ids[i];
+                                    Vec3d rvec = rvecsMat.Get<Vec3d>(i);
+                                    Vec3d tvec = tvecsMat.Get<Vec3d>(i);
 
-                                    if (id == 10)
+                                    DrawAxis(bgrMat, rvec, tvec, markerLength / 2, cameraMatrix, distCoeffs);  // draw axis on the detected marker
+
+                                    Vector3 markerPositionInKinectSpace = new Vector3(-(float)tvec[0], (float)tvec[1], (float)tvec[2]); // If Y axis needs to be flipped
+                                    Matrix4x4 kinectToWorld = kinectGameObject.transform.localToWorldMatrix;
+                                    Vector3 markerPositionInWorldSpace = kinectToWorld.MultiplyPoint3x4(markerPositionInKinectSpace);
+
+                                    // Store the position of marker in markerpos
+                                    markerpos = markerPositionInWorldSpace;
+
+                                    if (cubePrefab != null)
                                     {
-                                        Vec3d tvec = tvecsMat.Get<Vec3d>(i);
-                                        Vector3 markerPositionInKinectSpace = new Vector3(-(float)tvec[0], (float)tvec[1], (float)tvec[2]); // If Y axis needs to be flipped
-                                        Matrix4x4 kinectToWorld = kinectGameObject.transform.localToWorldMatrix;
-                                        Vector3 markerPositionInWorldSpace = kinectToWorld.MultiplyPoint3x4(markerPositionInKinectSpace);
-
-                                        // Store the position of marker in markerpos
-                                        markerpos = markerPositionInWorldSpace;
-
-                                        if (cubePrefab != null && instantiatedPrefabL == null)
+                                        if (!markerDict.ContainsKey(id))
                                         {
-                                            instantiatedPrefabL = Instantiate(cubePrefab, markerpos, Quaternion.identity);
-                                            instantiatedPrefabL.transform.localScale = new Vector3(0.04f, 0.04f, 0.04f); // Set the scale to 4cm x 4cm x 4cm
+                                            GameObject cube = Instantiate(cubePrefab, markerpos, Quaternion.identity);
+                                            cube.transform.localScale = new Vector3(0.04f, 0.04f, 0.04f); // Set the scale to 4cm x 4cm x 4cm
+                                            markerDict[id] = cube;
                                         }
-                                        else if (instantiatedPrefabL != null)
+                                        else
                                         {
-                                            instantiatedPrefabL.transform.position = markerpos;
+                                            markerDict[id].transform.position = markerpos;
                                         }
                                     }
                                 }
                             }
                         }
+
+                            // Convert the OpenCV Mat with the drawn axis to Texture2D and assign it to the RawImage
+                            UpdateTexture(bgrMat, texture);
+                        outputImage.texture = texture;
                     }
                 }
             }

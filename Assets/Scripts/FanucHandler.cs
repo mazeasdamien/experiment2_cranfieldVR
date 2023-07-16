@@ -61,6 +61,8 @@ namespace Telexistence
         public GameObject center;
         public float disstanceCam;
 
+        private bool shouldContinueReading = true;
+
         void Start()
         {
             // Initialize CancellationTokenSource
@@ -68,7 +70,7 @@ namespace Telexistence
 
             // Connect to the server and start reading data
             ConnectToServerAsync();
-            ReadDataFromServerAsync(_cancellationTokenSource.Token);
+
 
             // Save initial position and rotation of the Kinect cursor
             initialPosition = kinect_cursor.position;
@@ -87,8 +89,9 @@ namespace Telexistence
 
          void Update()
          {
-             // Check if either Enter key is pressed
-             if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+            ReadDataFromServerAsync();
+            // Check if either Enter key is pressed
+            if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
              {
                  // Call your send method
                  SendAndClearInput();
@@ -280,21 +283,19 @@ namespace Telexistence
             }
         }
 
-        // Function to read data from the server asynchronously
-        private async void ReadDataFromServerAsync(CancellationToken cancellationToken)
+        private async void ReadDataFromServerAsync()
         {
             if (_stream == null) return;
-
             byte[] buffer = new byte[1024];
             StringBuilder accumulatedData = new StringBuilder();
 
-            while (!cancellationToken.IsCancellationRequested)
+            while (shouldContinueReading)
             {
                 if (_client.Connected)
                 {
                     try
                     {
-                        int bytesRead = await _stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
+                        int bytesRead = await _stream.ReadAsync(buffer, 0, buffer.Length);
 
                         if (bytesRead == 0)
                         {
@@ -325,6 +326,7 @@ namespace Telexistence
                             // Handle message with position, joint angles, and digital input value
                             if (values.Length == 12)
                             {
+
                                 // Parse joint angles and xyzwpr position
                                 float[] jointAngles = new float[6];
                                 for (int i = 0; i < 6; i++)
@@ -363,10 +365,6 @@ namespace Telexistence
                                 Debug.LogError("Received incorrect number of values: " + values.Length + ". Data: " + data);
                             }
                         }
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        Debug.LogWarning("Operation canceled.");
                     }
                     catch (IOException e)
                     {
